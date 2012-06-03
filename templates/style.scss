@@ -1,0 +1,336 @@
+/* style.css */
+<%block filter="filters.sass">
+
+$main-width: 625px;
+$typesize: 18px;
+$lead: 10px;
+$leading: $typesize + $lead;
+
+$margin-width: 120px;
+
+$debug: 0;
+
+
+body {
+    color: #222;
+    font-size: $typesize;
+    line-height: $leading;
+    /* 'Gill Sans', 'Century Gothic', 'Lucida Grande', Arial  */
+    /* font-family: sans-serif; */
+    font-family: 'Lucida Grande', Arial, sans-serif;
+
+    @if $debug == 0 {
+        background-color: #FAF4ED;
+    } @else {
+        background: url($leading + 'px_grid_bg.gif') 0 0;
+    }
+    min-height:700px;
+}
+
+#title {
+    font-family: 'Futura';
+    text-align: center;
+    color: #000;
+
+    height: $leading * 8;
+
+    h1 {
+        padding: 36px 0;
+        font-size: 45px;
+        line-height:45px;
+    }
+    .not-insane {
+        font-size: 30px;
+        color: #808080;
+    }
+
+    /* Title shall be an _invisible_ link. */
+    a {
+        &:link, &:visited, &:active {
+            color: black;
+            text-decoration: none;
+        }
+    }
+}
+
+@mixin box {
+    width: $main-width;
+    @if $debug == 1 {
+        border: 1px dashed black;
+        border-width: 0 1px;
+    }
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@mixin topbox {
+    @if $debug == 1 {
+        border: 0;
+    }
+    width: 100%;
+    max-width: $main-width + $margin-width * 2;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@mixin hr {
+    height: 1px;
+    background-color: #888;
+    margin-bottom: $leading - 1px;
+    @include topbox;
+}
+
+/* .stripe { */
+/*     @include topbox; */
+/*     background-color: #BBB; */
+/*     > * { */
+/*         @include box; */
+/*     } */
+/* } */
+
+article > *, header {
+    @include box;
+}
+
+:link {
+    color: #00E;
+    text-decoration: none;
+}
+        
+:visited  {
+    color: #551A8B;
+}
+       
+a:hover {
+    text-decoration: underline;
+}
+
+article {
+            
+    h1, h2, h3, h4, hr {
+        margin-bottom: $leading;
+    }
+
+    p, ul, ol, dl, img, pre {
+        margin-bottom: $leading;
+    }
+
+    p + ul, p + ol, p + pre {
+        /* margin-top: -$leading / 2; */
+        /* margin-bottom: $leading / 2; */
+    }
+
+    div.h1wrapper {
+        /* Stripe */
+        @include topbox;
+        background-color: #BBB;
+
+        h1 {
+            @include box;
+        }
+    }
+
+    h1 {
+        padding: $leading/2 0;
+        font-size: $typesize*2 + 9;
+        line-height: $leading*3;
+    }
+
+    h2 {
+        font-size: $typesize*2;
+        line-height: $leading*2;
+    }
+
+    h3 {
+        font-size: $typesize*1.5;
+        line-height: $leading*2;
+    }
+    
+    ul {
+        list-style: outside disc;
+    }
+    ul > li {
+        margin-left: 1.7em;
+    }
+    li > p:only-child {
+        margin-bottom: 0;
+    }
+
+    ol {
+        list-style: outside decimal;
+    }
+    ol > li {
+        margin-left: 2.5em;
+    }
+
+
+    code, pre {
+        background-color: #DDD;
+        line-height: $leading;
+    }
+
+    
+    pre, pre > code {
+        font-size: $typesize - 2;
+        line-height: $leading;
+        font-family: monospace;
+    }
+    
+    pre {
+        padding-left: 8px;
+        max-width: $main-width - 8px;
+        white-space: pre-wrap;      /* if possible - break nicely */
+        /* We wanna break words */
+        word-wrap: break-word;      /* Old */
+        overflow-wrap: break-word;  /* New css */
+    }
+
+    hr {
+        @include hr;
+    }
+    
+    p:lang(en) {
+        -moz-hyphens: auto;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+        /* text-align: justify; */
+    }
+
+    h1, h2, h3, h4 {
+        font-weight: bolder;
+        /* font-variant: small-caps; */
+    }
+
+    h5 {
+        font-variant: small-caps;
+    }
+
+    abbr {
+        font-weight: bolder;
+    }
+
+    dl {
+        dt {
+            font-weight: bolder;
+        }
+        dd {
+            margin-left: 2.5em;
+        }
+    }
+    
+    sup {
+        font-size: $typesize / 1.5;
+        margin-left: 2px;
+        line-height: 1px;
+        vertical-align: super;        
+    }
+
+    div.footnote {
+        @include topbox;
+        
+        font-size: $typesize / 1.2;
+
+        > * {
+            @include box;
+        }
+
+        hr {
+            @include hr;
+        }
+    }
+
+    div.toc {
+        .toctitle {
+            font-size: $typesize * 2;
+            line-height: $leading * 2;
+            font-weight: bolder;
+            margin-bottom: $leading;
+            display: block;
+        }
+        margin-bottom: $leading;
+    }
+
+    blockquote {
+        border-left: 20px solid #222;
+
+        padding-left: 30px;
+        font-weight: bold;
+    }
+
+    table {
+        border-collapse: collapse;
+        border-style: hidden;
+        max-width: $main-width;
+        width: auto;
+
+        td, th {
+            border: 1px solid black;
+            empty-cells: show;
+        }
+        td, th {
+            padding-left: 8px;
+            padding-right: 8px;
+            font-size: $typesize - 2;
+        }
+        td {            /* one hor line for every row */
+            line-height: $leading - 1;
+        }
+        th {            /* assuming one header - 0 hor lines*/
+            font-weight: bold;
+            line-height: $leading - 0;
+        }
+        margin-bottom: $leading;
+    }
+
+} /* article */
+
+
+    div.h1wrapper {
+        /* Stripe */
+        @include topbox;
+        background-color: #BBB;
+
+        h1 {
+            @include box;
+        }
+    }
+
+
+footer {
+    > div {
+        @include topbox;
+        padding-top: $leading;
+        padding-bottom: $leading * 12;
+        background-color: #BBB;
+    
+        > div {
+            @include box;
+            :link, :visited {
+                margin-left: 2.5em;
+                color: #555;
+                font-size: $typesize - 3;
+                font-weight: bolder;
+            }
+            a > span {
+                text-decoration: underline;
+            }
+            #footer-left {
+                float:left;
+            }
+            #footer-right {
+                float:right;
+            }
+        }
+    }
+} /* footer*/
+
+h1, h2, h3, h4, hr {
+    page-break-before: auto;
+    page-break-after: avoid;
+}
+
+p, ul, ol, dl, img, pre {
+    page-break-after: auto;
+}
+
+</%block>

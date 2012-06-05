@@ -283,6 +283,14 @@ article {
         color: #666;
     }
 
+    em {
+        font-style: italic;
+    }
+
+    strong, b {
+        font-weight: bolder;
+    }
+
 } /* article */
 
 
@@ -311,13 +319,20 @@ footer {
     }
 } /* footer */
 
-h1, h2, h3, h4, hr {
-    page-break-before: auto;
-    page-break-after: avoid;
-}
+@media print {
+    h1, h2, h3, h4, hr {
+        page-break-before: auto;
+        page-break-after: avoid;
+    }
 
-p, ul, ol, dl, img, pre {
-    page-break-after: auto;
+    p, ul, ol, dl, img, pre {
+        page-break-after: auto;
+    }
+
+    header, footer {
+        /* Don't waste paper on the blog title and footer */
+        display: none;
+    }
 }
 
 </%block>

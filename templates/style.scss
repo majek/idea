@@ -17,14 +17,15 @@ body {
     line-height: $leading;
     /* 'Gill Sans', 'Century Gothic', 'Lucida Grande', Arial  */
     /* font-family: sans-serif; */
+    /* 13px Helvetica,arial,freesans,clean,sans-serif */
     font-family: 'Lucida Grande', Arial, sans-serif;
 
-    @if $debug == 0 {
-        background-color: #FAF4ED;
-    } @else {
+    background-color: #FAF4ED;
+    @if $debug == 1 {
         background: url($leading + 'px_grid_bg.gif') 0 0;
     }
-    min-height:700px;
+    min-width: $main-width + 40px;
+
 }
 
 #title {
@@ -54,7 +55,8 @@ body {
 }
 
 @mixin box {
-    width: $main-width;
+    min-width: $main-width;
+    max-width: $main-width;
     @if $debug == 1 {
         border: 1px dashed black;
         border-width: 0 1px;
@@ -68,6 +70,7 @@ body {
         border: 0;
     }
     width: 100%;
+    /* don't set min-width */
     max-width: $main-width + $margin-width * 2;
     margin-left: auto;
     margin-right: auto;
@@ -80,15 +83,7 @@ body {
     @include topbox;
 }
 
-/* .stripe { */
-/*     @include topbox; */
-/*     background-color: #BBB; */
-/*     > * { */
-/*         @include box; */
-/*     } */
-/* } */
-
-article > *, header {
+article > *, header, footer {
     @include box;
 }
 
@@ -282,47 +277,39 @@ article {
         margin-bottom: $leading;
     }
 
+    div.date {
+        font-size: $typesize - 2;
+        padding-bottom: $leading;
+        color: #666;
+    }
+
 } /* article */
 
 
-    div.h1wrapper {
-        /* Stripe */
-        @include topbox;
-        background-color: #BBB;
-
-        h1 {
-            @include box;
-        }
-    }
-
-
 footer {
+    @include topbox;
+    background-color: #BBB;
     > div {
-        @include topbox;
+        @include box;
         padding-top: $leading;
-        padding-bottom: $leading * 12;
-        background-color: #BBB;
-    
-        > div {
-            @include box;
-            :link, :visited {
-                margin-left: 2.5em;
-                color: #555;
-                font-size: $typesize - 3;
-                font-weight: bolder;
-            }
-            a > span {
-                text-decoration: underline;
-            }
-            #footer-left {
-                float:left;
-            }
-            #footer-right {
-                float:right;
-            }
+        padding-bottom: $leading * 5;
+        :link, :visited {
+            margin-left: 2.5em;
+            color: #555;
+            font-size: $typesize - 3;
+            font-weight: bolder;
+        }
+        a > span {
+            text-decoration: underline;
+        }
+        #footer-left {
+            float:left;
+        }
+        #footer-right {
+            float:right;
         }
     }
-} /* footer*/
+} /* footer */
 
 h1, h2, h3, h4, hr {
     page-break-before: auto;

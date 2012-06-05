@@ -7,17 +7,20 @@
 ${title}
 ====================================
 
-<div class="date">${date}</div>
+<div class="date">${date.strftime('%d %B %Y')}</div>
 
-It's always easier to continue than start. With that in mind, allow me
-to just keep on writing, in the same fashion as
-[my previous attempt](http://blogger.popcnt.org/).
+Starting is usually hard, it's much easier to just continue. With that
+in mind, allow me to keep on writing, in the same fashion as
+[my previous blog](http://blogger.popcnt.org/).
 
-Although I stopped writing the "Majek's technical blog" more than two
-years ago, some of my old writings are still valid and bring nice
+Although I wrote my last post on
+["Majek's technical blog"](http://blogger.popcnt.org/) more than two
+years ago, I'm still eager to spread my ideas.
+
+Surprisingly, some of my old writings are still valid and bring back
 memories about my previous state of the mind.
 
-I really hope this place will be of similar value and quality.
+I hope this place won't be much worse.
 
 </%block>
 </article>

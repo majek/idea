@@ -2,7 +2,7 @@
 
 
 <article>
-  <div class="h1wrapper"><h1>Archive</h1></div>
+  <div class="h1wrapper"><h1>Articles</h1></div>
 
   % for year in sorted(sites_by_year.keys()):
   <h2>${year}</h2>
@@ -10,7 +10,7 @@
   <ul>
     % for site in reversed(sites_by_year[year]):
     <li><a href="${site['dir_name']}">
-        <span class="site_date">${site['date']}</span> &#187;
+        <span class="site_date">${site['date'].strftime('%d %B %Y')}</span> &#187;
         <span class="site_name">${site['title']}</span>
     </a></li>
     % endfor

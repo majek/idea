@@ -24,7 +24,6 @@ out/20%: site/20% $(wildcard site/20%/*) templates/*
 
 # Assuming: files have dot in the name, directories don't
 out/index.html: $(wildcard site/*/context.yml) $(wildcard site/*.*) templates/*
-	@echo "XXX $(wildcard site/*.*)"
 	(cd site && $(PYTHON) gen.py $(PWD)/out)
 
 

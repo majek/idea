@@ -3,7 +3,6 @@ import tornado.web
 import tornado.websocket
 import os
 
-print 'x ', os.getpid()
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -11,13 +10,13 @@ class MainHandler(tornado.web.RequestHandler):
 
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
-        print "WebSocket opened"
+        pass
 
     def on_message(self, message):
-        self.write_message(u"You said: " + message)
+        pass
 
     def on_close(self):
-        print "WebSocket closed"
+        pass
 
 application = tornado.web.Application([
     (r"/ws",  EchoWebSocket),
@@ -25,5 +24,6 @@ application = tornado.web.Application([
 ])
 
 if __name__ == "__main__":
+    print ' [*] listening on 0.0.0.0:8888 pid=%r' % (os.getpid(),)
     application.listen(8888)
     tornado.ioloop.IOLoop.instance().start()

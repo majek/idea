@@ -5,11 +5,12 @@ import mako.template
 import sys
 import mako.lookup
 import collections
-
+import shutil
 
 import common.filters
 
 dst_dir = sys.argv[1]
+print " [*] Dst dir: %r" % (dst_dir,)
 
 
 sites = []
@@ -19,6 +20,8 @@ for dir_name in filter(os.path.isdir, glob.glob('*')):
     if not os.path.isfile(yml_file): continue
     with open(yml_file, 'r') as f:
         yml = yaml.load(f.read())
+        if yml.get('disabled') is True:
+            continue
         yml['dir_name'] = dir_name
         assert yml['date']
         sites.append(yml)
@@ -41,3 +44,6 @@ ctx = {
 with open(os.path.join(dst_dir, 'index.html'), 'w') as f:
     f.write( template.render(**ctx) )
 
+for fname in ['zarowka.png', 'favicon.ico', '28px_grid_bg.gif']:
+    print ' [.] copying %r' % (fname,)
+    shutil.copy2(fname, dst_dir)

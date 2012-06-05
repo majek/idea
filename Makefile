@@ -1,45 +1,33 @@
 PYTHON=PYTHONPATH=$(PWD) $(PWD)/venv/bin/python
 
 all: venv/.ok \
-	out/favicon.ico \
-	out/zarowka.png \
-	out/32px_grid_bg.gif \
-	out/28px_grid_bg.gif \
+	out \
 	out/index.html \
-	out/2012-05-27-hello-world/index.html
+	$(subst site,out,$(wildcard site/20*))
 
 
 venv:
 	virtualenv venv
 
-venv/.ok: requirements.txt
+venv/.ok: venv requirements.txt
 	./venv/bin/pip install -r requirements.txt
 	touch venv/.ok
-
 
 out:
 	mkdir out
 
-out/2012-05-27-hello-world/index.html: $(wildcard site/2012-05-27-hello-world/*) out templates/*
-	-rm -rf out/2012-05-27-hello-world
-	mkdir out/2012-05-27-hello-world
-	(cd site/2012-05-27-hello-world && $(PYTHON) gen.py $(PWD)/out/2012-05-27-hello-world)
+out/20%: site/20% $(wildcard site/20%/*) templates/*
+	@-rm -rf "$@"
+	@mkdir "$@"
+	(cd "$<" && $(PYTHON) gen.py $(PWD)/$@)
 
-out/index.html: $(wildcard site/*/context.yml) site/gen.py $(wildcard site/*) out templates/*
+
+# Assuming: files have dot in the name, directories don't
+out/index.html: $(wildcard site/*/context.yml) $(wildcard site/*.*) templates/*
+	@echo "XXX $(wildcard site/*.*)"
 	(cd site && $(PYTHON) gen.py $(PWD)/out)
 
 
-out/favicon.ico: site/favicon.ico
-	cp site/favicon.ico out
-
-out/zarowka.png: site/zarowka.png
-	cp site/zarowka.png out
-
-out/32px_grid_bg.gif: site/32px_grid_bg.gif
-	cp site/32px_grid_bg.gif out
-
-out/28px_grid_bg.gif: site/28px_grid_bg.gif
-	cp site/28px_grid_bg.gif out
 
 run_server:
 	$(PYTHON) server.py

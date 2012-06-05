@@ -9,7 +9,7 @@
 
   <ul>
     % for site in reversed(sites_by_year[year]):
-    <li><a href="${site['dir_name']}">
+    <li><a href="${site['dir_name']}/">
         <span class="site_date">${site['date'].strftime('%d %B %Y')}</span> &#187;
         <span class="site_name">${site['title']}</span>
     </a></li>

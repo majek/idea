@@ -38,7 +38,7 @@ template = mako.template.Template(filename='main.html', lookup=mylookup)
 ctx = {
     'sites': sites,
     'sites_by_year': sites_by_year,
-    'filters': common.filters,
+    'filters': common.filters.MakoFilters({}),
 }
 
 with open(os.path.join(dst_dir, 'index.html'), 'w') as f:

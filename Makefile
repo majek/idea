@@ -16,7 +16,7 @@ venv/.ok: venv requirements.txt
 out:
 	mkdir out
 
-out/20%: site/20% $(wildcard site/20%/*) templates/*
+out/20%: site/20% $(wildcard site/20%/*) templates/* common/*py
 	@-rm -rf "$@"
 	@mkdir "$@"
 	(cd "$<" && $(PYTHON) gen.py $(PWD)/$@)

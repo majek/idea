@@ -1,6 +1,11 @@
 import scss
 import markdown as Markdown
 
+import markdown_urlize
+import markdown_wrap_h
+import markdown_dot_h
+
+
 CSS_UNCOMPR = scss.Scss(scss_opts={
         'compress': False,
         'debug_info': False,
@@ -13,21 +18,21 @@ CSS_COMPR = scss.Scss(scss_opts={
     }
 )
 
+class MakoFilters(object):
+    def __init__(self, configs):
+        urlize = markdown_urlize.UrlizeExtension(dict(configs))
+        wrap = markdown_wrap_h.HeaderIdExtension(dict(configs))
+        dot = markdown_dot_h.makeExtension(dict(configs))
+        self.markdown_extensions = ['extra', 'headerid',
+                                    'toc(title=Contents)', urlize, wrap, dot]
 
-def sass(text):
-    return CSS_UNCOMPR.compile(text)
+    def sass(self, text):
+        return CSS_UNCOMPR.compile(text)
 
-def sass_compr(text):
-    return CSS_COMPR.compile(text)
+    def sass_compr(self, text):
+        return CSS_COMPR.compile(text)
 
-
-import markdown_urlize
-urlize = markdown_urlize.UrlizeExtension({})
-
-import markdown_wrap_h
-wrap = markdown_wrap_h.HeaderIdExtension({})
-
-def markdown(text):
-    return Markdown.markdown(text, extensions=['extra', 'headerid', 'toc(title=Contents)', urlize, wrap],
-                             encoding="utf-8",
-                             output_format="html5")
+    def markdown(self, text):
+        return Markdown.markdown(text, extensions=self.markdown_extensions[:],
+                                 encoding="utf-8",
+                                 output_format="html5")

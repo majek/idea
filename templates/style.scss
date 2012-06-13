@@ -15,9 +15,6 @@ body {
     color: #222;
     font-size: $typesize;
     line-height: $leading;
-    /* 'Gill Sans', 'Century Gothic', 'Lucida Grande', Arial  */
-    /* font-family: sans-serif; */
-    /* 13px Helvetica,arial,freesans,clean,sans-serif */
     font-family: 'Lucida Grande', Arial, sans-serif;
 
     background-color: #FAF4ED;
@@ -29,8 +26,10 @@ body {
 }
 
 #title {
-    font-family: 'Futura';
     text-align: center;
+    /* font-family: Futura */
+    font-weight: bold;
+
     color: #000;
 
     height: $leading * 8;

@@ -13,5 +13,11 @@ if (document.location.href.indexOf('idea.popcount.org') !== -1) {
         var s = document.getElementsByTagName('script')[0];
         s.parentNode.insertBefore(ga, s);
     })();
+
+    window.onerror = function(m, f, l){
+        var err = [f, l, m].join(' : ');
+        _gaq.push(['_trackEvent', 'Errors', 'App', err, null, true]);
+    }
+
 }
 

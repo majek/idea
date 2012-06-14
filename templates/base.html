@@ -19,6 +19,7 @@
 </head><body>
 
 
+<div id="content">
 <header id="title">
   <h1><a href="/">
       Marek's
@@ -28,6 +29,9 @@
 </header>
 
 ${self.body()}
+
+<div class="footerpush"></div>
+</div> <!-- content -->
 
 <footer>
   <div>
@@ -43,7 +47,6 @@ ${self.body()}
     </%block>
   </div>
 </footer>
-
 
 <script>
 <%include file="reconnect.js"/>

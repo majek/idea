@@ -10,6 +10,24 @@ $margin-width: 120px;
 
 $debug: 0;
 
+$footerheight: 180px;
+
+/* Footer magic via: http://ryanfait.com/resources/footer-stick-to-bottom-of-page/ */
+html, body {
+    height: 100%;
+}
+
+#content {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -$footerheight;
+} /* content */
+
+.footerpush, footer {
+    height: $footerheight;
+}
+
 
 body {
     color: #222;
@@ -82,7 +100,7 @@ body {
     @include topbox;
 }
 
-article > *, header, footer {
+article > *, header {
     @include box;
 }
 
@@ -299,7 +317,6 @@ footer {
     > div {
         @include box;
         padding-top: $leading;
-        padding-bottom: $leading * 5;
         :link, :visited {
             margin-left: 2.5em;
             color: #555;

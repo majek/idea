@@ -10,7 +10,7 @@ $margin-width: 120px;
 
 $debug: 0;
 
-$footerheight: 180px;
+$footerheight: 6 * $leading;
 
 /* Footer magic via: http://ryanfait.com/resources/footer-stick-to-bottom-of-page/ */
 html, body {
@@ -37,7 +37,7 @@ body {
 
     background-color: #FAF4ED;
     @if $debug == 1 {
-        background: url($leading + 'px_grid_bg.gif') 0 0;
+        background: url('/' + $leading + '_grid_bg.gif') 0 0;
     }
     min-width: $main-width + 40px;
 
@@ -335,6 +335,12 @@ footer {
     }
 } /* footer */
 
+/* Make sure there is no stupid whitespace after img */
+img {
+    display:block;
+}
+
+
 @media print {
     h1, h2, h3, h4, hr {
         page-break-before: auto;
@@ -345,8 +351,8 @@ footer {
         page-break-after: auto;
     }
 
-    header, footer {
-        /* Don't waste paper on the blog title and footer */
+    footer {
+        /* Don't waste paper on the footer */
         display: none;
     }
 }

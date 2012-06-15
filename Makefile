@@ -49,3 +49,11 @@ serve:
 		rm -f .pidfile.pid;			\
 		sleep 0.1;				\
 	done
+
+pngout:
+	wget http://static.jonof.id.au/dl/kenutils/pngout-20120530-linux-static.tar.gz
+	mv pngout-20120530-linux-static/i686/pngout-static pngout
+	rm -rf pngout-20120530-linux-static pngout-20120530-linux-static.tar.gz 
+
+optimize: pngout
+	find out -name \*.png -exec ./pngout {} \;

@@ -13,7 +13,7 @@ print " [*] Dst dir: %r" % (dst_dir,)
 with open('context.yml', 'r') as f:
     ctx = yaml.load(f.read())
 
-ctx['filters'] = common.filters.MakoFilters({'dst_dir': [dst_dir]})
+ctx['filters'] = common.filters.MakoFilters({'dst_dir': [dst_dir], 'leading': [28]})
 
 
 mylookup = mako.lookup.TemplateLookup(directories=['.', '../../templates'],

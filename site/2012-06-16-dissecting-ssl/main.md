@@ -60,7 +60,7 @@ client_version
 random
 : This value is formed of 4 bytes representing time since epoch on client
     host and 28 random bytes. Exposing timer sources may allow [clock skew
-    measurments](http://www.cl.cam.ac.uk/~sjm217/papers/usenix08clockskew.pdf)
+    measurements](http://www.cl.cam.ac.uk/~sjm217/papers/usenix08clockskew.pdf)
     and those may be used to identify hosts.
     
     > Your browser broadcasts current time on SSL layer, without any
@@ -105,7 +105,7 @@ extensions
     [Server Name Indication](http://tools.ietf.org/html/rfc4366#section-3.1)
     [(SNI)](https://en.wikipedia.org/wiki/Server_Name_Indication)
     extension is used to specify a remote host name. This allows the
-    server to choose apporpriate certificate based on the host name.
+    server to choose appropriate certificate based on the host name.
     This allows hosting many domains on a single IP address, and
     famously
     [doesn't work on any IE on Windows XP](http://adam.heroku.com/past/2009/9/22/sni_ssl/).
@@ -115,7 +115,7 @@ extensions
     > exactly what domains you're looking at, even when you're using
     > HTTPS.
     
-    Similairly to the cipher list extensions and their order are
+    Similarly to the cipher list extensions and their order are
     application specific. For example:
     [FireFox 11 bundled with TOR](http://www.torproject.us/projects/torbrowser.html.en)
     is distinguishable from standalone installation - it doesn't send

@@ -9,93 +9,27 @@ ${title}
 
 <div class="date">${date.strftime('%d %B %Y')}</div>
 
-Not everyone knows that SSL handshake is not encrypted. When you think
-about it - there isn't other way, before the keys are exchanged the
-communication must be unencrypted. But I doubt many people think about
-it.
+In January [lcamtuf announced][1] a complete rewrite of his [p0f][]
+passive fingerprinting tool. Historically p0f was a low-level tool,
+mostly focused on fingerprinting layer 4 `SYN` and `SYN-ACK` packets.
 
-Here's how the [TLSv1 handshake works](http://tools.ietf.org/html/rfc2246#page-31):
+  [1]: http://lcamtuf.blogspot.co.uk/2012/01/p0f-is-back.html
+  [p0f]: http://lcamtuf.coredump.cx/p0f3/
 
-```
-      Client                                 Server
-        |                                      |
-        |  ----------- ClientHello --------->  |
-        |                                      |
-        |  <---------- ServerHello ----------  |
-        |  <---------- Certificate ----------  |
-        |                 ...                  |
-        |  <-------- ServerHelloDone --------  |
-        |                 ...                  |
-```
+New p0f moves up the stack and is capable of fingerprinting
+application level protocols. By default it is able to create HTTP
+fingerprints. The author also [suggests][] that other protocols are
+likely to follow.
 
-Let's focus on the first message - `ClientHello`. It is actually
-pretty interesting. RFC [defines the structure as](http://tools.ietf.org/html/rfc5246#page-41):
-
-    struct {
-        ProtocolVersion client_version;
-        Random random;
-        SessionID session_id;
-        CipherSuite cipher_suites<2..2^16-1>;
-        CompressionMethod compression_methods<1..2^8-1>;
-        Extension extensions<0..2^16-1>;
-    } ClientHello;
-
-
-Translated to English:
-
-client_version
-: The SSL/TLS protocol version the client (like the browser) wishes to use
-    during the session. Additionally there is a second version number
-    on the [Record layer](http://tools.ietf.org/html/rfc5246#page-19).
-    The [spec suggests](http://tools.ietf.org/html/rfc5246#page-88)
-    the Record field may be use to indicate the lowest supported
-    SSL/TLS version, but this is rarely used in practice. Only [older
-    versions of Opera](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/p0f.fp#L1086-1089) used different values in Record and
-    ClientHello layers.
-    
-random
-: This value is formed of 4 bytes representing time since epoch on client
-    host and 28 random bytes. Exposing timer sources may allow [clock skew
-    measurments](http://www.cl.cam.ac.uk/~sjm217/papers/usenix08clockskew.pdf)
-    and those may be used to identify hosts.
-    
-    > Your browser broadcasts current time on SSL layer, without any
-    > JavaScript or even before HTTP.
-       
-session_id
-: Instead of going throught full SSL handshake, the client may decide
-  to reuse previously established one. Session cache is usually
-  [shared between normal and privacy modes](http://trac.webkit.org/wiki/Fingerprinting#SessionIDs)
-  of the browser.
+  [suggests]: https://github.com/p0f/p0f/blob/8f6712ec32dd745dd0f3749b3dd8738179c8680b/docs/README#L105
   
-    > Even in privacy mode, your browser may still be identifiable due
-    > to the the SSL session reuse.
+By a strange coincidence, recently I've been interested in SSL
+fingerprinting.
 
-cipher_suites
-: The client shares the list of supported SSL ciphers with the server.
-  The server will later pick up the best cipher it knows. Some of the
-  ciphers are proven to be insecure and should be deprecated, some
-  other are
-  [very new](https://en.wikipedia.org/wiki/Elliptic_curve_cryptography).
-  But there isn't a single, coherent list of good ciphers, and as a result
-  every client supports different ciphers.
-  
-    > By just looking at the supported SSL ciphers it is possible to
-    > tell underlying SSL libraries apart and sometimes even particular
-    > applications.
-  
-compression_methods
-: Some clients (for example Chrome) support
-  [Deflate compression](http://tools.ietf.org/html/rfc3749#section-2.1).
-  on SSL layer. This usually makes sense - compressing HTTP headers
-  usually saves bandwidth. Remember to disable compression on HTTP
-  layer in this case.
-  
-extensions
-: asd
-  
+Fingerprinting SSL
+------------------
 
-Additionally,
+Not everyone knows that SSL handshake is not encrypted. Additionally,
 the initial ClientHello frame is pretty interesting - it contains a
 list of ciphers supported by the client.
 

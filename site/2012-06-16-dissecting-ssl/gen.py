@@ -16,9 +16,7 @@ if not os.path.isdir(dst_dir): os.makedirs(dst_dir)
 
 ctx['filters'] = common.filters.MakoFilters({'dst_dir': [dst_dir], 'leading': [28]})
 
-
 mylookup = mako.lookup.TemplateLookup(directories=['.', '../../templates'])
-
 template = mako.template.Template(filename='main.md', lookup=mylookup,
                                   input_encoding="utf-8")
 

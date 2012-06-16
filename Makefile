@@ -19,7 +19,7 @@ out:
 out/20%: site/20% $(wildcard site/20%/*) templates/* common/*py
 	@-rm -rf "$@"
 	@mkdir "$@"
-	(cd "$<" && $(PYTHON) gen.py $(PWD)/$@)
+	(cd "$<" && $(PYTHON) gen.py $(PWD)/out)
 
 
 # Assuming: files have dot in the name, directories don't

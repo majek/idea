@@ -8,6 +8,7 @@ import collections
 import shutil
 
 import common.filters
+import common.utils
 
 dst_dir = sys.argv[1]
 print " [*] Dst dir: %r" % (dst_dir,)
@@ -22,7 +23,7 @@ for dir_name in filter(os.path.isdir, glob.glob('*')):
         yml = yaml.load(f.read())
         if yml.get('disabled') is True:
             continue
-        yml['dir_name'] = dir_name
+        yml['dir_name'] = common.utils.subdir_from_ctx(yml)
         assert yml['date']
         sites.append(yml)
 

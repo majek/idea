@@ -46,6 +46,10 @@ with open(os.path.join(dst_dir, 'index.html'), 'w') as f:
                                       input_encoding="utf-8")
     f.write( template.render(**ctx) )
 
+with open(os.path.join(dst_dir, '404.html'), 'w') as f:
+    template = mako.template.Template(filename='404.html', lookup=mylookup,
+                                      input_encoding="utf-8")
+
     f.write( template.render(**ctx) )
 
 for fname in ['zarowka.png', 'favicon.ico', '28px_grid_bg.gif']:

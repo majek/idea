@@ -14,7 +14,10 @@ about it - there isn't other way, before the keys are exchanged the
 communication must be unencrypted. But I doubt many people think about
 it.
 
-Here's how the [TLSv1 handshake works](http://tools.ietf.org/html/rfc2246#page-31):
+TLS
+---
+
+Here's how the [TLS handshake works](http://tools.ietf.org/html/rfc2246#page-31):
 
 ```
       Client                                 Server
@@ -44,15 +47,16 @@ pretty interesting. RFC [defines the structure as](http://tools.ietf.org/html/rf
 Translated to English:
 
 client_version
-: The SSL/TLS protocol version the client (like the browser) wishes to use
-    during the session. Additionally there is a second version number
-    on the [Record layer](http://tools.ietf.org/html/rfc5246#page-19).
-    The [spec suggests](http://tools.ietf.org/html/rfc5246#page-88)
-    the Record field may be use to indicate the lowest supported
-    SSL/TLS version, but this is rarely used in practice. Only [older
-    versions of Opera](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/p0f.fp#L1086-1089) are using different values in Record and
-    ClientHello layers.
-    
+: The SSL/TLS protocol version the client (like the browser) wishes to
+  use during the session. Additionally there is a second version
+  number on the
+  [Record layer](http://tools.ietf.org/html/rfc5246#page-19).  The
+  [spec suggests](http://tools.ietf.org/html/rfc5246#page-88) the
+  Record field may be use to indicate the lowest supported SSL/TLS
+  version, but this is rarely used in practice. Only
+  [older versions of Opera](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/p0f.fp#L1086-1089)
+  are using different values in Record and ClientHello layers.
+
 random
 : This value is formed of 4 bytes representing time since epoch on client
     host and 28 random bytes. Exposing timer sources may allow [clock skew
@@ -61,7 +65,7 @@ random
     
     > Your browser broadcasts current time on SSL layer, without any
     > JavaScript or even before HTTP.
-       
+
 session_id
 : Instead of going through full SSL handshake, the client may decide
   to reuse previously established session. The session cache is usually
@@ -95,34 +99,53 @@ compression_methods
   HTTP layers.
   
 extensions
-: TLS introduces
-  [a number of extensions](http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml).
-  Most notably the `server_name` /
-  [Server Name Indication](http://tools.ietf.org/html/rfc4366#section-3.1)
-  [(SNI)](https://en.wikipedia.org/wiki/Server_Name_Indication)
-  extension is used to specify a remote host name. This allows the
-  server to choose apporpriate certificate based on the host name.
-  This allows hosting many domains on a single IP address, and
-  famously
-  [doesn't work on any IE on Windows XP](http://adam.heroku.com/past/2009/9/22/sni_ssl/).
+:   TLS introduces
+    [a number of extensions](http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml).
+    Most notably the `server_name` /
+    [Server Name Indication](http://tools.ietf.org/html/rfc4366#section-3.1)
+    [(SNI)](https://en.wikipedia.org/wiki/Server_Name_Indication)
+    extension is used to specify a remote host name. This allows the
+    server to choose apporpriate certificate based on the host name.
+    This allows hosting many domains on a single IP address, and
+    famously
+    [doesn't work on any IE on Windows XP](http://adam.heroku.com/past/2009/9/22/sni_ssl/).
   
     > When using SSL, the remote domain name is transferred over the
     > wire in plain text. Anyone able to sniff the traffic can know
     > exactly what domains you're looking at, even when you're using
     > HTTPS.
+    
+    Similairly to the cipher list extensions and their order are
+    application specific. For example:
+    [FireFox 11 bundled with TOR](http://www.torproject.us/projects/torbrowser.html.en)
+    is distinguishable from standalone installation - it doesn't send
+    `SessionTicket TLS` extension.
 
 
 That's it, now you know what's hidden in SSL ClientHello message. For
-a historical note, few words on
-[almost forgotten SSL 2.0](http://tools.ietf.org/html/rfc6176).
+a completeness, few words on historical protocols.
+
+SSL 3.0
+-------
+
+[SSLv3](https://tools.ietf.org/html/rfc6101) is identical to described
+TLS with one exception - in theory SSLv3 ClientHello packet doesn't
+have
+[an extensions field](https://tools.ietf.org/html/rfc6101#page-26).
+In theory SSLv3 doesn't do
+[SNI](https://en.wikipedia.org/wiki/Server_Name_Indication).
+
+In practice this is more
+complicated. [TLS 1.0](http://tools.ietf.org/html/rfc2246#page-35)
+also doesn't specify extensions, but most clients do send them anyway.
 
 SSL 2.0
 --------
 
 [SSL 2.0](http://www.mozilla.org/projects/security/pki/nss/ssl/draft02.html)
-is the protocol invented by Netscape. It's old, barely documented and
+was [originally developed by Netscape](https://en.wikipedia.org/wiki/Transport_Layer_Security#SSL_1.0.2C_2.0_and_3.0). It's old, barely documented and
 insecure. But some applications still support it, for compatibility
-with old servers. Some versions of `wget` and google crowler use SSLv2
+with old servers. Some versions of `wget` and google crawler use SSLv2
 handshake. `CLIENT-HELLO` message is defined as:
 
     char MSG-CLIENT-HELLO

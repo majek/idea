@@ -19,7 +19,8 @@ ctx['filters'] = common.filters.MakoFilters({})
 
 
 mylookup = mako.lookup.TemplateLookup(directories=['.', '../../templates'])
-template = mako.template.Template(filename='main.md', lookup=mylookup)
 
 with open(os.path.join(dst_dir, 'index.html'), 'w') as f:
+    template = mako.template.Template(filename='main.md', lookup=mylookup,
+                                      input_encoding="utf-8")
     f.write( template.render(**ctx) )

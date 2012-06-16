@@ -35,7 +35,6 @@ for site in sites:
     sites_by_year[site['date'].year].append( site )
 
 mylookup = mako.lookup.TemplateLookup(directories=['.', '../templates'])
-template = mako.template.Template(filename='main.html', lookup=mylookup)
 ctx = {
     'sites': sites,
     'sites_by_year': sites_by_year,
@@ -43,6 +42,10 @@ ctx = {
 }
 
 with open(os.path.join(dst_dir, 'index.html'), 'w') as f:
+    template = mako.template.Template(filename='main.html', lookup=mylookup,
+                                      input_encoding="utf-8")
+    f.write( template.render(**ctx) )
+
     f.write( template.render(**ctx) )
 
 for fname in ['zarowka.png', 'favicon.ico', '28px_grid_bg.gif']:

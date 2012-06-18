@@ -35,9 +35,9 @@ described the structure of SSL/TLS `ClientHello` packet.
 
 Importantly, it contains a list of supported ciphers and extensions.
 
-Unsurpisingly, those lists differ between clients and often it is
+Unsurprisingly, those lists differ between clients and often it is
 possible to identify an SSL client by looking at them. In other words
-- it is possible to distingish Firefox, Chrome, Opera and IE apart by
+- it is possible to distinguish Firefox, Chrome, Opera and IE apart by
 just looking at the initial HTTPS packet, which is unencrypted.
 
 This topic was already researched in the past, most notably by
@@ -55,7 +55,7 @@ I decided to work on more elaborate SSL fingerprinting and publish it
 as a p0f module. The code is available as a
 [patch against p0f 3.05b](https://gist.github.com/2721464).
 
-Detailed description is avaliable in
+Detailed description is available in
 [docs/ssl-notes.txt](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/docs/ssl-notes.txt)
 and
 [README](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/docs/README#L716).

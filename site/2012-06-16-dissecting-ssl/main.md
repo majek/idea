@@ -71,7 +71,7 @@ random
     
     > Your browser sends current time on the SSL layer.
     
-    Similarily, ServerHello sent by the server frame contains
+    Similarly, ServerHello sent by the server frame contains
     timestamp from the server.
 
 session_id
@@ -154,7 +154,7 @@ SSL 2.0
 [SSL 2.0](http://www.mozilla.org/projects/security/pki/nss/ssl/draft02.html)
 was
 [originally developed by Netscape](https://en.wikipedia.org/wiki/Transport_Layer_Security#SSL_1.0.2C_2.0_and_3.0). It's
-old, barely documented and insecure. Hovewer few applications still
+old, barely documented and insecure. However few applications still
 support it for compatibility with old servers. Some versions of `wget`
 and google crawler use the SSLv2 handshake. A `CLIENT-HELLO` message is
 defined as:

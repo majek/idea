@@ -95,8 +95,7 @@ compression_methods
 : Some clients (for example Chrome) support
   [Deflate compression](http://tools.ietf.org/html/rfc3749#section-2.1).
   on SSL layer. This usually makes sense - compressing HTTP headers
-  does save bandwidth. Remember to disable gzip compression on higher
-  HTTP layers.
+  does save bandwidth.
   
 extensions
 :   TLS introduces
@@ -119,10 +118,13 @@ extensions
     application specific. For example:
     [FireFox 11 bundled with TOR](http://www.torproject.us/projects/torbrowser.html.en)
     is distinguishable from standalone installation - it doesn't send
-    `SessionTicket TLS` extension.
+    `SessionTicket TLS` extension. Another example - Windows XP
+    doesn't send `Renegotiation Info` extension if without
+    [patch MS10-049](http://technet.microsoft.com/en-us/security/bulletin/MS10-049)
+    applied.
 
 
-That's it, now you know what's hidden in SSL ClientHello message. For
+That's it, now you know what's hiding in the SSL ClientHello message. For
 a completeness, few words on historical protocols.
 
 SSL 3.0
@@ -135,9 +137,9 @@ have
 In theory SSLv3 doesn't do
 [SNI](https://en.wikipedia.org/wiki/Server_Name_Indication).
 
-In practice this is more
-complicated. [TLS 1.0](http://tools.ietf.org/html/rfc2246#page-35)
-also doesn't specify extensions, but most clients do send them anyway.
+In practice this is more complicated. TLS 1.0 also
+[doesn't specify extensions field](http://tools.ietf.org/html/rfc2246#page-35),
+but most clients do send them anyway.
 
 SSL 2.0
 --------
@@ -167,7 +169,7 @@ have extensions - there is no way to specify
 [SNI](https://en.wikipedia.org/wiki/Server_Name_Indication) .
 
 On a final note `challenge-data` length must be between 16 and 32
-bytes long. In practice I've only seen lengths equal to 16 or 32.
+bytes long. In real world I've only seen lengths equal to 16 or 32.
 
 Summary
 -------
@@ -179,6 +181,9 @@ Things to remember:
 
  * `ClientHello` message contains a lot of stuff and it is often
    possible to identify a client application just by looking at it.
+
+
+Continue reading about [SSL fingerprinting &#8594;](/2012-06-17-ssl-fingerprinting-for-p0f/)
 
 
 </%block> </article>

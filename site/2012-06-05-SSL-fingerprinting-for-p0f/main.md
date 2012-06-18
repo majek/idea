@@ -9,18 +9,18 @@ ${title}
 
 <div class="date">${date.strftime('%d %B %Y')}</div>
 
-In January [Lcamtuf announced][1] a complete rewrite of his [p0f][]
-passive fingerprinting tool. Historically p0f was a low-level tool
+In January [Lcamtuf announced][1] a complete rewrite of his
+passive fingerprinting tool [p0f][]. Historically p0f was a low-level tool
 focused on fingerprinting layer 4, mostly `SYN` and `SYN-ACK` TCP/IP
 packets.
 
   [1]: http://lcamtuf.blogspot.co.uk/2012/01/p0f-is-back.html
   [p0f]: http://lcamtuf.coredump.cx/p0f3/
 
-New p0f moves up the stack and is capable of fingerprinting
-application level protocols. Currently it is able to do HTTP
-fingerprinting and the author [suggests][] other protocols might
-follow.
+New p0f version is different - not only it can look at low level
+packets, but also it is capable of fingerprinting higher-level
+application protocols. Currently it is able to do HTTP fingerprinting
+and the author [suggests][] other protocols might soon follow.
 
   [suggests]: https://github.com/p0f/p0f/blob/8f6712ec32dd745dd0f3749b3dd8738179c8680b/docs/README#L105
   
@@ -31,20 +31,20 @@ Fingerprinting SSL
 ------------------
 
 In [my previous blog post](/2012-06-16-dissecting-ssl-handshake/) I've
-described structure of SSL 3 / TLS `ClientHello` packet.
+described structure of SSL/TLS `ClientHello` packet.
 
-Importantly, itt contains a list of supported ciphers and extensions.
+Importantly, it contains a list of supported ciphers and extensions.
 
 Unsurpisingly, those lists differ between clients and often it is
 possible to identify an SSL client by looking at them. In other words
 - it is possible to distingish Firefox, Chrome, Opera and IE apart by
-just looking at raw SSL / HTTPS traffic.
+just looking at raw HTTPS traffic.
 
 This topic was already researched in the past, most notably by
 [Ivan Ristić][ir] in June 2009. Ivan published
 [a lot of interesting data](http://blog.ivanristic.com/2009/07/examples-of-the-information-collected-from-ssl-handshakes.html),
 but seem to focus on SSL cipher list, ignoring the ordering of ciphers
-and other potential sources of data.
+and other potential sources of data, like SSL extensions.
 
  [ir]: http://blog.ivanristic.com/2009/06/http-client-fingerprinting-using-ssl-handshake-analysis.html
 
@@ -56,18 +56,18 @@ as a p0f module. The code is available as a
 [patch against p0f 3.05b](https://gist.github.com/2721464).
 
 Detailed descriptin is avaliable in
-[`docs/ssl-notes.txt`](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/docs/ssl-notes.txt)
+[docs/ssl-notes.txt](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/docs/ssl-notes.txt)
 and
 [README](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/docs/README#L716).
 
-In summary this code looks at traffic passing by and looks for SSL
+In summary, this code looks at traffic passing by and looks for SSL
 `ClientHello` packets. It is able to decode both SSLv2 and SSLv3 / TLS
-handshakes. Based on information in from packet it generates an SSL
-fingerprint, for example a fingerprint for my Chrome 19 looks like:
+handshakes. Based on information in from packet it generates a
+fingerprint, for example my Chrome 19 produces:
 
     3.1:c00a,c014,88,87,39,38,c00f,c005,84,35,c007,c009,c011,c013,45,44,66,33,32,c00c,c00e,c002,c004,96,41,5,4,2f,c008,c012,16,13,c00d,c003,feff,a:?0,ff01,a,b,23,3374:compr
 
-The fingerprint is composed out of four fileds:
+The fingerprint is composed out of four colon-separated fileds:
 
 1. Requested **SSL version**.
 
@@ -92,15 +92,15 @@ The fingerprint is composed out of four fileds:
 This fingerprint is then matched against
 [a database of predefined signatures](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/p0f.fp). If
 a match is found, p0f can say few things about the client, usually a
-browser name, possible versions and sometimes even a platform.
+browser name, possible versions and sometimes a platform.
 
 A full match for my Chrome looks like:
 
-         raw_sig 3.1:c00a,c014,88,87,39,38,c00f,c005,84,35,c007,c009,c011,c013,45,44,66,33,32,c00c,c00e,c002,c004,96,41,5,4,2f,c008,c012,16,13,c00d,c003,feff,a:?0,ff01,a,b,23,3374:compr
-       match_sig 3.1:c00a,c014,88,87,39,38,c00f,*,c003,feff,a:?0,ff01,a,b,23,3374:compr
-             app Chrome 6 or newer
-           drift 0
-      remote_time 1338926865
+    app         = Chrome 6 or newer
+    drift       = 0
+    remote_time = 1338926865
+    match_sig   = 3.1:c00a,c014,88,87,39,38,c00f,*,c003,feff,a:?0,ff01,a,b,23,3374:compr
+    raw_sig     = 3.1:c00a,c014,88,87,39,38,c00f,c005,84,35,c007,c009,c011,c013,45,44,66,33,32,c00c,c00e,c002,c004,96,41,5,4,2f,c008,c012,16,13,c00d,c003,feff,a:?0,ff01,a,b,23,3374:compr
 
 
 Finally, SSLv3 handshake contains a client's GMT time field which you

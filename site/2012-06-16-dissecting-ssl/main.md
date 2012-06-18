@@ -9,10 +9,14 @@ ${title}
 
 <div class="date">${date.strftime('%d %B %Y')}</div>
 
-Not everyone knows that SSL handshake is not encrypted. When you think
-about it - there isn't other way, before the keys are exchanged the
-communication must be unencrypted. But I doubt many people think about
-it.
+Not everyone knows that the SSL handshake is not encrypted. When you
+think about it - there isn't other way, before the keys are exchanged
+the communication must be unencrypted. But I doubt many people think
+about it.
+
+Not only the SSL handshake is plain-text, but also it contains rather
+interesting data. I decided to find out how much information can be
+retrieved from it.
 
 TLS
 ---
@@ -49,11 +53,13 @@ Translated to English:
 client_version
 : The SSL/TLS protocol version the client (like the browser) wishes to
   use during the session. Additionally there is a second version
-  number on the
-  [Record layer](http://tools.ietf.org/html/rfc5246#page-19).  The
+  number field on the framing layer, called
+  [Record layer](http://tools.ietf.org/html/rfc5246#page-19). And like
+  all SSL data, ClientHello message is wrapped in the Record
+  frame. The
   [spec suggests](http://tools.ietf.org/html/rfc5246#page-88) the
-  Record field may be use to indicate the lowest supported SSL/TLS
-  version, but this is rarely used in practice. Only
+  Record layer version field may be use to indicate the lowest
+  supported SSL/TLS version, but this is rarely used in practice. Only
   [older versions of Opera](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/p0f.fp#L1086-1089)
   are using different values in Record and ClientHello layers.
 
@@ -61,10 +67,12 @@ random
 : This value is formed of 4 bytes representing time since epoch on client
     host and 28 random bytes. Exposing timer sources may allow [clock skew
     measurements](http://www.cl.cam.ac.uk/~sjm217/papers/usenix08clockskew.pdf)
-    and those may be used to identify hosts.
+    and those in theory may be used to identify hosts.
     
-    > Your browser broadcasts current time on SSL layer, without any
-    > JavaScript or even before HTTP.
+    > Your browser sends current time on the SSL layer.
+    
+    Similarily, ServerHello sent by the server frame contains
+    timestamp from the server.
 
 session_id
 : Instead of going through full SSL handshake, the client may decide
@@ -73,23 +81,22 @@ session_id
   of the browser.
   
     > Even in privacy mode, your browser may still be identifiable due
-    > to the the SSL session reuse.
+    > to SSL session reuse.
 
 cipher_suites
 : The client shares the list of supported SSL ciphers with the server.
   The server will later pick up the best cipher it knows. Some of the
   ciphers are proven to be insecure and should be deprecated, some
-  other are
-  [very new](https://en.wikipedia.org/wiki/Elliptic_curve_cryptography).
+  others are
+  [fairly recent](https://en.wikipedia.org/wiki/Elliptic_curve_cryptography).
   There isn't a global coherent list of good ciphers, and as a result
   every client can support different set of ciphers. Additionally the
   [ordering of the ciphers is significant](http://tools.ietf.org/html/rfc5246#page-40)
-  and therefore even if clients agreed on ciphers the ordering
-  might be completely different.
+  and therefore even if clients agreed on ciphers the ordering might
+  be completely different.
   
-    > By just looking at the supported ciphers list it is often
-    > possible to tell what exact application had started the
-    > connection.
+    > By looking at the supported ciphers list it is often possible to
+    > tell what exact application had started the connection.
   
 compression_methods
 : Some clients (for example Chrome) support
@@ -98,16 +105,16 @@ compression_methods
   does save bandwidth.
   
 extensions
-:   TLS introduces
+: TLS introduces
     [a number of extensions](http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml).
     Most notably the `server_name` /
     [Server Name Indication](http://tools.ietf.org/html/rfc4366#section-3.1)
     [(SNI)](https://en.wikipedia.org/wiki/Server_Name_Indication)
     extension is used to specify a remote host name. This allows the
-    server to choose appropriate certificate based on the host name.
-    This allows hosting many domains on a single IP address, and
-    famously
-    [doesn't work on any IE on Windows XP](http://adam.heroku.com/past/2009/9/22/sni_ssl/).
+    server to choose appropriate certificate based on the requested
+    host name.  With this extension one can host many SSL-enabled
+    vhosts on a single IP address. Famously
+    [SNI doesn't work on any IE on Windows XP](http://adam.heroku.com/past/2009/9/22/sni_ssl/).
   
     > When using SSL, the remote domain name is transferred over the
     > wire in plain text. Anyone able to sniff the traffic can know
@@ -125,13 +132,13 @@ extensions
 
 
 That's it, now you know what's hiding in the SSL ClientHello message. For
-a completeness, few words on historical protocols.
+completeness, a few words on historical protocols.
 
 SSL 3.0
 -------
 
-[SSLv3](https://tools.ietf.org/html/rfc6101) is identical to described
-TLS with one exception - in theory SSLv3 ClientHello packet doesn't
+[SSLv3](https://tools.ietf.org/html/rfc6101) is identical to
+TLS as described, with one exception - in theory SSLv3 ClientHello packet doesn't
 have
 [an extensions field](https://tools.ietf.org/html/rfc6101#page-26).
 In theory SSLv3 doesn't do
@@ -145,10 +152,12 @@ SSL 2.0
 --------
 
 [SSL 2.0](http://www.mozilla.org/projects/security/pki/nss/ssl/draft02.html)
-was [originally developed by Netscape](https://en.wikipedia.org/wiki/Transport_Layer_Security#SSL_1.0.2C_2.0_and_3.0). It's old, barely documented and
-insecure. But some applications still support it, for compatibility
-with old servers. Some versions of `wget` and google crawler use SSLv2
-handshake. `CLIENT-HELLO` message is defined as:
+was
+[originally developed by Netscape](https://en.wikipedia.org/wiki/Transport_Layer_Security#SSL_1.0.2C_2.0_and_3.0). It's
+old, barely documented and insecure. Hovewer few applications still
+support it for compatibility with old servers. Some versions of `wget`
+and google crawler use the SSLv2 handshake. A `CLIENT-HELLO` message is
+defined as:
 
     char MSG-CLIENT-HELLO
     char CLIENT-VERSION-MSB
@@ -168,8 +177,8 @@ The fields are familiar - `client_version`, `cipher_suites`,
 have extensions - there is no way to specify
 [SNI](https://en.wikipedia.org/wiki/Server_Name_Indication) .
 
-On a final note `challenge-data` length must be between 16 and 32
-bytes long. In real world I've only seen lengths equal to 16 or 32.
+On a final note, `challenge-data` length must be between 16 and 32
+bytes long. In real world I've only seen 16 and 32.
 
 Summary
 -------
@@ -181,6 +190,11 @@ Things to remember:
 
  * `ClientHello` message contains a lot of stuff and it is often
    possible to identify a client application just by looking at it.
+
+ * During SSL handshake both the client and the server send their
+   local time in plain-text.
+
+ * Never enable SSLv2.
 
 
 Continue reading about [SSL fingerprinting &#8594;](/2012-06-17-ssl-fingerprinting-for-p0f/)

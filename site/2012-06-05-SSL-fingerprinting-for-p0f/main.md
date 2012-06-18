@@ -17,7 +17,7 @@ packets.
   [1]: http://lcamtuf.blogspot.co.uk/2012/01/p0f-is-back.html
   [p0f]: http://lcamtuf.coredump.cx/p0f3/
 
-New p0f version is different - not only it can look at low level
+The new version of p0f is different: not only it can look at low level
 packets, but also it is capable of fingerprinting higher-level
 application protocols. Currently it is able to do HTTP fingerprinting
 and the author [suggests][] other protocols might soon follow.
@@ -30,21 +30,21 @@ fingerprinting.
 Fingerprinting SSL
 ------------------
 
-In [my previous blog post](/2012-06-16-dissecting-ssl-handshake/) I've
-described structure of SSL/TLS `ClientHello` packet.
+In [my previous article](/2012-06-16-dissecting-ssl-handshake/) I've
+described the structure of SSL/TLS `ClientHello` packet.
 
 Importantly, it contains a list of supported ciphers and extensions.
 
 Unsurpisingly, those lists differ between clients and often it is
 possible to identify an SSL client by looking at them. In other words
 - it is possible to distingish Firefox, Chrome, Opera and IE apart by
-just looking at raw HTTPS traffic.
+just looking at the initial HTTPS packet, which is unencrypted.
 
 This topic was already researched in the past, most notably by
 [Ivan Ristić][ir] in June 2009. Ivan published
 [a lot of interesting data](http://blog.ivanristic.com/2009/07/examples-of-the-information-collected-from-ssl-handshakes.html),
-but seem to focus on SSL cipher list, ignoring the ordering of ciphers
-and other potential sources of data, like SSL extensions.
+but seemed to focus on the SSL cipher list, ignoring the ordering of ciphers
+and other potential sources of data, like TLS extensions.
 
  [ir]: http://blog.ivanristic.com/2009/06/http-client-fingerprinting-using-ssl-handshake-analysis.html
 
@@ -55,19 +55,19 @@ I decided to work on more elaborate SSL fingerprinting and publish it
 as a p0f module. The code is available as a
 [patch against p0f 3.05b](https://gist.github.com/2721464).
 
-Detailed descriptin is avaliable in
+Detailed description is avaliable in
 [docs/ssl-notes.txt](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/docs/ssl-notes.txt)
 and
 [README](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/docs/README#L716).
 
 In summary, this code looks at traffic passing by and looks for SSL
 `ClientHello` packets. It is able to decode both SSLv2 and SSLv3 / TLS
-handshakes. Based on information in from packet it generates a
-fingerprint, for example my Chrome 19 produces:
+handshakes. Based on information in such a packet it generates a
+fingerprint; for example, my Chrome 19 produces:
 
     3.1:c00a,c014,88,87,39,38,c00f,c005,84,35,c007,c009,c011,c013,45,44,66,33,32,c00c,c00e,c002,c004,96,41,5,4,2f,c008,c012,16,13,c00d,c003,feff,a:?0,ff01,a,b,23,3374:compr
 
-The fingerprint is composed out of four colon-separated fileds:
+The fingerprint is composed out of four colon separated fields:
 
 1. Requested **SSL version**.
 
@@ -78,7 +78,7 @@ The fingerprint is composed out of four colon-separated fileds:
 
         c00a,c014,88,87,39,38,c00f,c005,84,35,c007,c009,c011,c013,45,44,66,33,32,c00c,c00e,c002,c004,96,41,5,4,2f,c008,c012,16,13,c00d,c003,feff,a
 
-3. Specified **extensions**.
+3. Specified **extensions**, without altering the order.
 
         ?0,ff01,a,b,23,3374
 
@@ -89,7 +89,7 @@ The fingerprint is composed out of four colon-separated fileds:
         compr
 
 
-This fingerprint is then matched against
+Next, the fingerprint is matched against
 [a database of predefined signatures](https://github.com/majek/p0f/blob/6b1570c6caf8e6c4de0d67e72eb6892030223b01/p0f.fp). If
 a match is found, p0f can say few things about the client, usually a
 browser name, possible versions and sometimes a platform.
@@ -103,13 +103,13 @@ A full match for my Chrome looks like:
     raw_sig     = 3.1:c00a,c014,88,87,39,38,c00f,c005,84,35,c007,c009,c011,c013,45,44,66,33,32,c00c,c00e,c002,c004,96,41,5,4,2f,c008,c012,16,13,c00d,c003,feff,a:?0,ff01,a,b,23,3374:compr
 
 
-Finally, SSLv3 handshake contains a client's GMT time field which you
-can see above. It would be interesting to see if it is possible to do
-fingerprinting based on
+Finally, the SSLv3 handshake contains a client's GMT time field which
+you can see above in the `remote_time` field. It would be interesting
+to see if it is possible to do fingerprinting based on
 [clock skew](http://www.caida.org/publications/papers/2005/fingerprinting/KohnoBroidoClaffy05-devicefingerprinting.pdf).
 
 
-You can see your fingerprint your browser try my online experiment here:
+You can see the fingerprint of your browser using the online experiment:
 
  * https://p0f.popcnt.org/
  

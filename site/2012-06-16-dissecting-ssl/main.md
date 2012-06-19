@@ -126,7 +126,7 @@ extensions
     [FireFox 11 bundled with TOR](http://www.torproject.us/projects/torbrowser.html.en)
     is distinguishable from standalone installation - it doesn't send
     `SessionTicket TLS` extension. Another example - Windows XP
-    doesn't send `Renegotiation Info` extension if without
+    doesn't send `Renegotiation Info` extension without
     [patch MS10-049](http://technet.microsoft.com/en-us/security/bulletin/MS10-049)
     applied.
 
@@ -197,7 +197,7 @@ Things to remember:
  * Never enable SSLv2.
 
 
-Continue reading about [SSL fingerprinting &#8594;](/2012-06-17-ssl-fingerprinting-for-p0f/)
-
+Continue reading about [SSL fingerprinting &#8594;](/2012-06-17-ssl-fingerprinting-for-p0f/)<br>
+Comment on [YCombinator &#8594;](http://news.ycombinator.com/item?id=4126040)
 
 </%block> </article>

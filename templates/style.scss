@@ -40,7 +40,8 @@ body {
         background: url('/' + $leading + '_grid_bg.gif') 0 0;
     }
     min-width: $main-width + 40px;
-    -webkit-text-size-adjust:none;
+    /* Safari mobile does font scaling by default. */
+    -webkit-text-size-adjust: none;
 }
 
 #title {

@@ -4,6 +4,7 @@ import markdown as Markdown
 import markdown_urlize
 import markdown_wrap_h
 import markdown_dot_h
+import markdown_dot2_h
 
 
 CSS_UNCOMPR = scss.Scss(scss_opts={
@@ -23,8 +24,9 @@ class MakoFilters(object):
         urlize = markdown_urlize.UrlizeExtension(dict(configs))
         wrap = markdown_wrap_h.HeaderIdExtension(dict(configs))
         dot = markdown_dot_h.makeExtension(dict(configs))
+        dot2 = markdown_dot2_h.makeExtension(dict(configs))
         self.markdown_extensions = ['extra', 'headerid',
-                                    'toc(title=Contents)', urlize, wrap, dot]
+                                    'toc(title=Contents)', urlize, wrap, dot2]
 
     def sass(self, text):
         return CSS_UNCOMPR.compile(text)

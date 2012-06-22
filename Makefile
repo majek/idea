@@ -40,7 +40,7 @@ serve:
 	@while [ 1 ]; do				\
 		make all;				\
 		echo " [*] Running http server";	\
-		$(PYTHON) server.py & 			\
+		$(PWD)/venv/bin/python server.py & 	\
 		SRVPID=$$!;				\
 		echo $$SRVPID > .pidfile.pid;		\
 		echo " [*] Server pid: $$SRVPID";	\

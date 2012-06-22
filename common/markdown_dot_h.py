@@ -3,7 +3,6 @@ from markdown.util import etree, AtomicString
 import os.path
 import os
 import sys
-import shutil
 import re
 import md5
 import yaml

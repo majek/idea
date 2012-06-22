@@ -26,3 +26,8 @@ if (document.location.href.indexOf('idea.popcount.org') === -1) {
         };
     }
 }
+
+// Escape frames for browsers without X-Frame-Options
+if (top != window) {
+    top.location.href = document.location;
+}

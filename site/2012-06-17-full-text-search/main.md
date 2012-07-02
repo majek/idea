@@ -9,60 +9,169 @@ ${title}
 
 <div class="date">${date.strftime('%d %B %Y')}</div>
 
-In [January 2009][1] I was thinking if it is possible to have a
-real-time full-text search engine based a simple but scalable
-architecture. Basically: is it possible to have:
+In
+[January 2009](http://www.lshift.net/blog/2009/01/20/my-thoughts-on-real-time-full-text-search)
+I was wondering whether it is possible to build a full-text search
+engine that could handle
+[the search for Twitter](http://search.twitter.com). At that time the
+search tool they provided was barely working. Later
+[Twitter acquired Summize](http://blog.twitter.com/2008/07/finding-perfect-match.html)
+to solve this problem.
+
+A search engine for Twitter presents a unique set of
+constraints. Traditional full-text search engines assume that index
+once created won't be changed, updating it is expensive by
+design. Twitter use case requires something opposite - adding items to
+the search must happen instantly and cheaply.
+
+I wondered if it's possible to have:
 
 * a full-text search engine
 * able to update indexes in real-time
-* horizontally scalalble
-* based on simple architecture
+* horizontally scalable with regard to both data retrieval and
+  indexing speed
+* ideally, based on simple architecture
 
-After some thinking about the architecture, I came up with the problem
-statement:
+At that time available open-source search engines weren't really
+horizontally scalable and updating indexes was expensive. Scaling was
+usually "solved" by serving the same index from multiple machines. As
+updating index was quite complex, it was usually easier to create a
+separate index for recent updates. But that resulted in a large number
+of small indexes - which is very inefficient. To avoid that a merge
+was required.
 
-> Is it possible to build a full-text search engine on a simple
-> distributed key-value store?
+Scaling requires distributing very large indexes to the multiple
+machines, while updating indexes means rewriting them. These two
+behaviours don't play together nicely.
+
+
+Being disappointed with available solutions and feeling the wave of
+NoSQL I went for a quest:
+
+> Is it possible to build a full-text search engine on a distributed
+> key-value store?
+
+Suffering the
+[not-invented-here syndrome](https://en.wikipedia.org/wiki/Not_Invented_Here),
+I jumped straight into coding.
 
 Let the experiment begin
 ------------------------
 
-Writing the lexer and basic indexer
-[wasn't all that hard](https://github.com/majek/ziutek/blob/e8d79833222953af3e73bd98a5e2d4108a9599ae/ziutek/rtftse.py#L2). But
-even though the indexer was written in slow Python, it appeared not to
-be the biggest bottleneck.
+Writing the basic lexer and indexer
+[wasn't all that hard](https://github.com/majek/ziutek/blob/e8d79833222953af3e73bd98a5e2d4108a9599ae/ziutek/rtftse.py#L2).
 
-Building a database layer
--------------------------
+I run a few experiments, mostly trying to index the huge
+[Wikipedia dump](http://en.wikipedia.org/wiki/Wikipedia:Database_download),
+and I was surprised to see the indexer, written in not-that-fast
+Python, was not the biggest bottleneck.
 
-After a series of experiments on this design and quickly found out,
-that the weakest link was the database layer. Simple indexer was able
-to saturate both Tokyo Cabinet and Berkeley DB. Neither behaved nicely
-under significant load when the data grew larger then available
-memory.
+Although initially it was indeed the slowest part of the system, when
+the indexes grew to a certain size the storage layer started to ruin
+the performance of the whole system.
 
-Being a true believer in "not invented here" religion, I decided to
-write my own database, specially tuned for this use case. 
+The weakest link
+----------------
 
-Underlying assumptions:
+I repeated the tests with both
+[Tokyo Cabinet](http://fallabs.com/tokyocabinet/) and
+[Berkeley DB](https://en.wikipedia.org/wiki/Berkeley_DB). Neither
+behaved nicely when the dataset outgrew available memory.
 
- * Accessed keys have uniform distribution. Probability of accessing
-   a single key is equal to any other.
- * When retrieving a key at most a single disk seek should be
-   necessary.
- * All writes should be sequential - therefore saving data would
-   essentially be free. That implies an append-only log design.
- * Stored data will be significantly larger then available memory.
+It's not that surprising. Both databases are tuned for common usage
+patterns. Storing data for a full-text search engine is definitely not
+one of them.
 
+What I needed is a key-value storage layer optimised for:
 
-My first attempt was a rather dumb append-only log database, with an
-rb-tree in-memory data structure, of course stolen from Linux kernel.
+huge number of small objects
+: Value size follows a logarithmic distribution, with most items
+  having only a few bytes, followed by a long tail of larger items.
 
+large data sets
+: Stored data will be significantly larger than RAM size.
 
+retrieval speed
+: Accessing every key should require at most a one disk seek.
 
+write speed
+: Writes should be bulked and done only to a single file at a
+  time. That ensures an average write cost is close to zero disk
+  seeks.
 
+Again, at the time there wasn't a decent database layer having these
+features. Recently alternatives started arriving - for example things
+like [LevelDB](https://code.google.com/p/leveldb/) and
+[BitCask](http://downloads.basho.com/papers/bitcask-intro.pdf) promise
+similar properties.
 
-  [1]: http://www.lshift.net/blog/2009/01/20/my-thoughts-on-real-time-full-text-search
+Naive database layer
+--------------------
+
+I decided to write my own database, specially tuned for my specific
+use case.
+
+My first attempt was a rather simple database with an append-only log
+architecture. In order to locate a particular key on a disk I stored
+key metadata in-memory. Concretely, relationship stored in memory:
+
+    key -> (log_file, data_offset, data_size)
+
+I decided to use a simplest data structure for this data structure - a
+binary tree.
+
+The implementation [went smoothly](https://github.com/majek/ydb-old)
+and soon I was able to squeeze more performance than from previously
+tested databases. But I soon hit another problem.
+
+It's all about memory, Luke
+---------------------------
+
+The custom database performed well until it stopped with an
+out-of-memory error. Ruling out implementation issues like memory
+leaks, I realised that the memory cost of a single key was rather
+significant. Especially when you try to store millions of keys.
+
+For every stored key, my database needed to have an in-memory object
+containing:
+
+```
+size of key          : 2 bytes
+key                  : 9 bytes on average (may vary)
+
+log file number      : 4 bytes
+value offset in file : 8 bytes
+value size           : 4 bytes
+
+binary tree overhead : 24 bytes (3 pointers)
+```
+
+An average key length in my experiments was around 9 bytes, in total
+that gives about 51 bytes per key. In theory in 4GiB RAM one could
+store 84 million keys.
+
+I clearly wanted to store more keys.
+
+Beating trees
+-------------
+
+We can surely do better - by far the biggest contribution to the
+memory usage is the binary tree overhead.  Almost all binary tree
+implementations use three pointers per node (to `left`, `right` and
+`parent` nodes). Counting 8 bytes per pointer on a 64 bit architecture
+gives a constant overhead of 24 bytes per key.
+
+It's pretty disappointing when you realise that half of the nodes on
+the tree have NULL in two out of three pointers - the leafs and have
+no childs - they have an empty value in `left` and `right`!
+
+What can be done to reduce memory footprint of a key in such database?
+
+A lot. Later I was able to reduce the memory usage to about 33 bytes
+per key.
+
+But let's not jump ahead of the story. First, we need to find a more
+memory efficient data structure than a stupid binary tree.
 
 
 </%block>

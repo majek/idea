@@ -11,6 +11,7 @@ $margin-width: 120px;
 $debug: 0;
 
 $footerheight: 6 * $leading;
+$roundness: 2px;
 
 /* Footer magic via: http://ryanfait.com/resources/footer-stick-to-bottom-of-page/ */
 html, body {
@@ -101,6 +102,12 @@ body {
     @include topbox;
 }
 
+@mixin roundcorners($params) {
+    -webkit-border-radius: $params;
+    -moz-border-radius: $params;
+    border-radius: $params;
+}
+
 article > *, header {
     @include box;
 }
@@ -137,6 +144,7 @@ article {
         /* Stripe */
         @include topbox;
         background-color: #BBB;
+        @include roundcorners($roundness);
 
         h1 {
             @include box;
@@ -180,6 +188,7 @@ article {
     code, pre {
         background-color: #DDD;
         line-height: $leading;
+        font-family: monospace;
     }
 
     
@@ -317,6 +326,7 @@ article {
 footer {
     @include topbox;
     background-color: #BBB;
+    @include roundcorners($roundness $roundness 0 0);
     > div {
         @include box;
         padding-top: $leading;

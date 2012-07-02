@@ -29,7 +29,7 @@ out/index.html: $(wildcard site/*/context.yml) $(wildcard site/*.*) templates/*
 
 
 run_server:
-	$(PYTHON) server.py
+	$(PWD)/venv/bin/python server.py
 
 serve:
 	@if [ -e .pidfile.pid ]; then		\
@@ -40,7 +40,7 @@ serve:
 	@while [ 1 ]; do				\
 		make all;				\
 		echo " [*] Running http server";	\
-		$(PWD)/venv/bin/python server.py & 	\
+		make run_server &		 	\
 		SRVPID=$$!;				\
 		echo $$SRVPID > .pidfile.pid;		\
 		echo " [*] Server pid: $$SRVPID";	\

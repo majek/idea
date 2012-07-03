@@ -20,13 +20,13 @@ to solve this problem.
 
 A search engine for Twitter presents a unique set of
 constraints. Traditional full-text search engines assume that index
-once created won't be changed, updating it is expensive by
+once created won't be changed, updating is expensive by
 design. Twitter use case requires something opposite - adding items to
-the search must happen instantly and cheaply.
+the index must happen instantly and cheaply.
 
 I wondered if it's possible to have:
 
-* a full-text search engine
+* a basic full-text search engine
 * able to update indexes in real-time
 * horizontally scalable with regard to both data retrieval and
   indexing speed
@@ -37,10 +37,10 @@ horizontally scalable and updating indexes was expensive. Scaling was
 usually "solved" by serving the same index from multiple machines. As
 updating index was quite complex, it was usually easier to create a
 separate index for recent updates. But that resulted in a large number
-of small indexes - which is very inefficient. To avoid that a merge
-was required.
+of small indexes - which is very inefficient. To avoid that an
+occasional merge was required.
 
-Scaling requires distributing very large indexes to the multiple
+Scaling required distributing very large indexes to the multiple
 machines, while updating indexes means rewriting them. These two
 behaviours don't play together nicely.
 
@@ -85,14 +85,16 @@ one of them.
 What I needed is a key-value storage layer optimised for:
 
 huge number of small objects
-: Value size follows a logarithmic distribution, with most items
-  having only a few bytes, followed by a long tail of larger items.
+: Full-text search index is composed of a huge number of mostly small
+  items, at least one for every indexed word. Value size follows a
+  logarithmic distribution, with most items having only a few bytes,
+  followed by a long tail of much larger items.
 
 large data sets
 : Stored data will be significantly larger than RAM size.
 
 retrieval speed
-: Accessing every key should require at most a one disk seek.
+: Accessing every key should require at most one disk seek.
 
 write speed
 : Writes should be bulked and done only to a single file at a
@@ -103,7 +105,7 @@ Again, at the time there wasn't a decent database layer having these
 features. Recently alternatives started arriving - for example things
 like [LevelDB](https://code.google.com/p/leveldb/) and
 [BitCask](http://downloads.basho.com/papers/bitcask-intro.pdf) promise
-similar properties.
+similar set of properties.
 
 Naive database layer
 --------------------
@@ -113,24 +115,23 @@ use case.
 
 My first attempt was a rather simple database with an append-only log
 architecture. In order to locate a particular key on a disk I stored
-key metadata in-memory. Concretely, relationship stored in memory:
+key metadata in-memory. Concretely the relationship stored in memory:
 
     key -> (log_file, data_offset, data_size)
 
-I decided to use a simplest data structure for this data structure - a
-binary tree.
+I decided to use a simplest data structure for this - a binary tree.
 
 The implementation [went smoothly](https://github.com/majek/ydb-old)
 and soon I was able to squeeze more performance than from previously
-tested databases. But I soon hit another problem.
+tested databases. But then I hit another problem.
 
 It's all about memory, Luke
 ---------------------------
 
 The custom database performed well until it stopped with an
 out-of-memory error. Ruling out implementation issues like memory
-leaks, I realised that the memory cost of a single key was rather
-significant. Especially when you try to store millions of keys.
+leaks, I realised that the memory cost of a single key was
+non-negligible - specially when you try to store millions of keys.
 
 For every stored key, my database needed to have an in-memory object
 containing:
@@ -163,7 +164,7 @@ gives a constant overhead of 24 bytes per key.
 
 It's pretty disappointing when you realise that half of the nodes on
 the tree have NULL in two out of three pointers - the leafs and have
-no childs - they have an empty value in `left` and `right`!
+no childs - they store an empty value in `left` and `right`!
 
 What can be done to reduce memory footprint of a key in such database?
 

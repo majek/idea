@@ -187,11 +187,12 @@ article {
 
     code, pre {
         background-color: #DDD;
-        line-height: $leading;
         font-family: monospace;
+        /* Reducing line-height seems to work fine - ie: code block doesn't extend 
+           the line: http://stackoverflow.com/questions/8395652/monospaced-font-throwing-line-height-out */
+        line-height: $leading - 2;
     }
 
-    
     pre, pre > code {
         font-size: $typesize - 2;
         line-height: $leading;

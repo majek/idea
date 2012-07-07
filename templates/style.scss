@@ -43,6 +43,8 @@ body {
     min-width: $main-width + 40px;
     /* Safari mobile does font scaling by default. */
     -webkit-text-size-adjust: none;
+
+    text-rendering: optimizeLegibility;
 }
 
 #title {

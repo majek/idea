@@ -52,6 +52,6 @@ with open(os.path.join(dst_dir, '404.html'), 'w') as f:
 
     f.write( template.render(**ctx) )
 
-for fname in ['zarowka.png', 'favicon.ico', '28px_grid_bg.gif']:
+for fname in ['zarowka.png', 'favicon.ico', '28px_grid_bg.gif', 'robots.txt']:
     print ' [.] copying %r' % (fname,)
     shutil.copy2(fname, dst_dir)

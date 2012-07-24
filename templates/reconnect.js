@@ -1,5 +1,11 @@
+var show_alert = function(msg){
+    document.getElementById('alertbox').style.display="block";
+    document.getElementById('alert').innerHTML = msg;
+
+};
 
 if (document.location.href.indexOf('idea.popcount.org') === -1) {
+    var counter = 0;
 
     var ws_url = function(){
         return ((document.location.protocol === 'http:') ? 'ws://' : 'wss://') +
@@ -7,6 +13,8 @@ if (document.location.href.indexOf('idea.popcount.org') === -1) {
     }
 
     var try_reconnect = function(){
+        counter += 1;
+        show_alert('Reconnecting... (' + counter + ')');
         console.log('[*] reconnecting...');
         setTimeout(function(){
             ws = new WebSocket(ws_url());

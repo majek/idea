@@ -382,4 +382,21 @@ img {
     }
 }
 
+
+/* Alert box */
+#alertbox {
+    display: none;
+
+    @include roundcorners(10px);
+    position: fixed;
+    top: 20%;
+    width: 30%;
+    left: 35%;
+    background-color: #FF3300;
+
+    div {
+        margin: 10px;
+    }
+}
+
 </%block>

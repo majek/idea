@@ -23,7 +23,6 @@ class MakoFilters(object):
     def __init__(self, configs):
         urlize = markdown_urlize.UrlizeExtension(dict(configs))
         wrap = markdown_wrap_h.HeaderIdExtension(dict(configs))
-        dot = markdown_dot_h.makeExtension(dict(configs))
         dot2 = markdown_dot2_h.makeExtension(dict(configs))
         self.markdown_extensions = ['extra', 'headerid',
                                     'toc(title=Contents)', urlize, wrap, dot2]

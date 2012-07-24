@@ -10,7 +10,7 @@ defaults = {
     'height': 'auto',
     'width': 625,
     'descr': 'Diagram',
-    'dpi':72,
+    'dpi': 72,
     'rankdir':'LR',
     }
 
@@ -18,7 +18,7 @@ defaults = {
 join_attr = lambda attr:' '.join( '%s="%s"' % (k,v) for k, v in attr.iteritems())
 join_style = lambda style:'; '.join( '%s: %s' % (k,v) for k, v in style) + ';'
 
-
+# pyc -> py, pyo -> py
 with open(sys.modules[__name__].__file__.rstrip('co'), 'r') as f:
     current_module_checksum = md5.new(f.read()).hexdigest()
 
@@ -52,7 +52,8 @@ def generate(content, dst_dir, leading):
         ('width', '%spx' % (width,)),
         ('height', '%spx' % (height, )),
         ('background', 'url(%s.png) no-repeat center center' % ctx['file']),
-        ('background', 'rgba(0,0,0,0) url(%s.svg) no-repeat center center' % ctx['file']),
+        ('%sbackground' % ('' if not svg_disabled else 'x_',),
+         'rgba(0,0,0,0) url(%s.svg) no-repeat center center' % ctx['file']),
         ('display', 'block'),
         ('padding-bottom', '%spx' % (leading - (width % leading),)),
         ]
@@ -72,6 +73,7 @@ def do_generate(ctx, outfile, dot_data):
         'Gfontname': '"Arial"',
         'Nfontname': '"Arial"',
         'Efontname': '"Arial"',
+        'Gcolor': 'transparent', # box of subgraph
         }
 
     if ctx['height'] != 'auto':

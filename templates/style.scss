@@ -41,9 +41,6 @@ body {
         background: url('/' + $leading + '_grid_bg.gif') 0 0;
     }
     min-width: $main-width + 40px;
-    /* Safari mobile does font scaling by default. */
-    -webkit-text-size-adjust: none;
-
     text-rendering: optimizeLegibility;
 }
 
@@ -199,6 +196,12 @@ article {
         font-size: $typesize - 2;
         line-height: $leading;
         font-family: monospace;
+        /* Safari mobile does font scaling by default.
+           But chrome doesn't scale fonts on zooming if the value is
+           set to none (always use percentages). See:
+               https://developer.mozilla.org/en/CSS/text-size-adjust
+        */
+        -webkit-text-size-adjust: 90%;
     }
     
     pre {

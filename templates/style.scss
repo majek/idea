@@ -59,7 +59,7 @@ body {
     h1 {
         padding: 36px 0;
         font-size: 45px;
-        line-height:45px;
+        line-height: 45px;
     }
     .not-insane {
         font-size: 30px;
@@ -363,13 +363,22 @@ img {
 
 
 @media print {
+    :link {
+        color: #00E;
+        text-decoration: underline;
+    }
+
+    p, ul, ol, dl {
+        page-break-before: avoid;
+    }
+
+    img, pre {
+        page-break-before: auto;
+    }
+
     h1, h2, h3, h4, hr {
         page-break-before: auto;
         page-break-after: avoid;
-    }
-
-    p, ul, ol, dl, img, pre {
-        page-break-after: auto;
     }
 
     body {

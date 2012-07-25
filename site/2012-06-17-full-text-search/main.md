@@ -174,6 +174,7 @@ per key.
 But let's not jump ahead of the story. First, we need to find a more
 memory efficient data structure than a stupid binary tree.
 
+[Continue reading &#8594;](/2012-07-25-introduction-to-hamt/)
 
 </%block>
 </article>

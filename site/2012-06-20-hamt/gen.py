@@ -1,6 +1,7 @@
 import sys
 import os
 import yaml
+import shutil
 import mako.template
 import mako.lookup
 
@@ -22,3 +23,7 @@ with open(os.path.join(dst_dir, 'index.html'), 'w') as f:
     template = mako.template.Template(filename='main.md', lookup=mylookup,
                                       input_encoding="utf-8")
     f.write( template.render(**ctx).encode('utf-8') )
+
+for fname in ['idealhashtrees.pdf', 'triesearches.pdf']:
+    print ' [.] copying %r' % (fname,)
+    shutil.copy2(fname, dst_dir)

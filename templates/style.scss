@@ -238,6 +238,16 @@ article {
         margin-right: auto;
     }
 
+    .image > img {
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 0;
+    }
+    .image > div {
+        text-align: center;
+        font-size: $typesize - 4;
+    }
+
     abbr {
         font-weight: bolder;
     }

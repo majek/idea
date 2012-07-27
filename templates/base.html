@@ -9,8 +9,12 @@
 
 
   <meta name="author" content="Marek" />
-  <title>Totally not insane</title>
-
+  <title>
+    % if isinstance(title, unicode) or isinstance(title, str):
+      ${title} &#8212;
+    % endif
+    Idea of the day
+  </title>
 
   <style>
 <%include file="reset.css"/>

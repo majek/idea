@@ -55,7 +55,7 @@ def generate(content, dst_dir, leading):
         ('%sbackground' % ('' if not svg_disabled else 'x_',),
          'rgba(0,0,0,0) url(%s.svg) no-repeat center center' % ctx['file']),
         ('display', 'block'),
-        ('padding-bottom', '%spx' % (leading - (width % leading),)),
+        ('padding-bottom', '%spx' % (leading - (height % leading),)),
         ]
 
     return '''<div class="svgimage"><div style="%s"></div></div>''' % (

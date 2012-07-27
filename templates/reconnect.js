@@ -39,3 +39,22 @@ if (document.location.href.indexOf('idea.popcount.org') === -1) {
 if (top != window) {
     top.location.href = location.href;
 }
+
+
+var _debug = 0;
+var flip_debug = function(){
+    var leading = 28;
+    var bg = ""
+    if (!_debug) {
+            bg = "url('/" + leading + "px_grid_bg.gif') 0 0";
+    }
+    _debug = !_debug;
+    document.body.style.background = bg;
+}
+
+window.captureEvents(Event.KEYPRESS);
+window.onkeypress = function(e) {
+    if (e.which === 100) { // key "d"
+        flip_debug();
+    }
+};

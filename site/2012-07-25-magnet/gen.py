@@ -24,6 +24,6 @@ with open(os.path.join(dst_dir, 'index.html'), 'w') as f:
                                       input_encoding="utf-8")
     f.write( template.render(**ctx).encode('utf-8') )
 
-for fname in ['finger-magnet-implant.jpg', 'iphone-compass.jpg', 'hmc5883l.jpg', 'buzzer.jpg', 'lilypad.jpg']:
+for fname in ['finger-magnet-implant.jpg', 'iphone-compass.jpg', 'hmc5883l.jpg', 'buzzer.jpg', 'lilypad.jpg', 'schema.png', 'schema-capacitor.png', 'result.jpg', 'author.jpg']:
     print ' [.] copying %r' % (fname,)
     shutil.copy2(fname, dst_dir)

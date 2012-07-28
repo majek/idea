@@ -37,11 +37,11 @@ Later he discoverers more things about the environment:
 > generator.
 
 Having a sixth sense sounds exciting, but implanting a piece of metal
-in your body is quite aggressive. Even ignoring such details like
-finding a surgeon willing to perform the operation and getting a
-suitable magnet, the prospect of
+in your body is quite invasive. Even ignoring such details like
+finding a surgeon willing to perform the operation, the prospects of
+a possible magnet corrosion and
 [not being able to get an MRI scan](http://news.ycombinator.com/item?id=3734200)
-is a serious downside.
+are major downsides.
 
 Deciding that an implant may not be for me I started to wonder: why
 not to try "emulate" the thing? Of course, any kind of "emulation" is
@@ -88,11 +88,11 @@ magnetometer unit in use is
 [HMC6352](https://www.sparkfun.com/products/7915). For $35 it's
 expensive - but at least it's very simple.
 
-The chip is simple works with Arduino out of the box and accepts input
-voltage in a scale perfect for Arduino 2.7V - 5.2V. But unfortunately
-was not good enough for my usage - having only two axis appeared to be
-too fragile. The readings were flaky and I often missed interesting
-readings due to the lack of the third axis.
+The chip is simple, works with Arduino out of the box and accepts input
+voltage in a scale perfect for this project 2.7V - 5.2V. But
+unfortunately it was not good enough for my usage - readings from only
+two axis were inconsistent and I often missed interesting facts due
+to the lack of the third axis.
 
 <div class="image" style="height:224px;"><img src="hmc5883l.jpg" height="196px"></div>
 
@@ -234,7 +234,7 @@ magnetic field (it was usually a utility box). There also were places
 I where couldn't identify the field source.
 
 After all that, I agree that being able to feel the magnetic field is
-very cool.
+a great fun.
 
 
 </%block>

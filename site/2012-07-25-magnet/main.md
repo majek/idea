@@ -236,6 +236,7 @@ where I couldn't identify the source of the field.
 After all that, I agree that being able to feel the magnetic field is
 a great fun.
 
+Comment on [YCombinator &#8594;](http://news.ycombinator.com/item?id=4309201)
 
 </%block>
 </article>

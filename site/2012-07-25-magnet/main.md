@@ -230,8 +230,8 @@ streets, I don't recommend that).
 When wearing the device I could feel "stuff", mostly electrical
 devices. Friends were laughing at me when during a walk I was stopping
 suddenly and doing few steps back to identify the source of the
-magnetic field (it was usually a utility box). There also were places
-I where couldn't identify the field source.
+magnetic field (it was usually a utility box). There were also places
+where I couldn't identify the source of the field.
 
 After all that, I agree that being able to feel the magnetic field is
 a great fun.

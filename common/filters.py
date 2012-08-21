@@ -24,7 +24,7 @@ class MakoFilters(object):
         urlize = markdown_urlize.UrlizeExtension(dict(configs))
         wrap = markdown_wrap_h.HeaderIdExtension(dict(configs))
         dot2 = markdown_dot2_h.makeExtension(dict(configs))
-        self.markdown_extensions = ['extra', 'headerid',
+        self.markdown_extensions = ['extra', 'headerid', 'codehilite',
                                     'toc(title=Contents)', urlize, wrap, dot2]
 
     def sass(self, text):

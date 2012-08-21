@@ -52,9 +52,11 @@ var flip_debug = function(){
     document.body.style.background = bg;
 }
 
-window.captureEvents(Event.KEYPRESS);
-window.onkeypress = function(e) {
-    if (e.which === 100) { // key "d"
-        flip_debug();
-    }
+if ('captureEvents' in window) {
+    window.captureEvents(Event.KEYPRESS);
+    window.onkeypress = function(e) {
+        if (e.which === 100) { // key "d"
+            flip_debug();
+        }
+    };
 };

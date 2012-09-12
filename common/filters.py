@@ -5,7 +5,7 @@ import markdown_urlize
 import markdown_wrap_h
 import markdown_dot_h
 import markdown_dot2_h
-
+import markdown_gnuplot
 
 CSS_UNCOMPR = scss.Scss(scss_opts={
         'compress': False,
@@ -24,8 +24,9 @@ class MakoFilters(object):
         urlize = markdown_urlize.UrlizeExtension(dict(configs))
         wrap = markdown_wrap_h.HeaderIdExtension(dict(configs))
         dot2 = markdown_dot2_h.makeExtension(dict(configs))
+        gnuplot = markdown_gnuplot.makeExtension(dict(configs))
         self.markdown_extensions = ['extra', 'headerid', 'codehilite',
-                                    'toc(title=Contents)', urlize, wrap, dot2]
+                                    'toc(title=Contents)', urlize, wrap, dot2, gnuplot]
 
     def sass(self, text):
         return CSS_UNCOMPR.compile(text)

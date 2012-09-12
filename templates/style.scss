@@ -96,6 +96,8 @@ body {
 
 @mixin hr {
     height: 1px;
+    border-width: 0px;
+    color: #888;
     background-color: #888;
     margin-bottom: $leading - 1px;
     @include topbox;
@@ -126,7 +128,7 @@ a:hover {
 
 article {
             
-    h1, h2, h3, h4, hr {
+    h1, h2, h3, h4 {
         margin-bottom: $leading;
     }
 

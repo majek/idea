@@ -185,6 +185,19 @@ article {
         margin-left: 2.5em;
     }
 
+    ol > li > ol {
+        /* Number under number is stupid. */
+        list-style-type: lower-alpha;
+    }
+
+    ol > li, ul > li {
+        > ul, > ol {
+            /* Nested enumerations need to be padded a bit. */
+            margin-top: $leading / 2;
+            margin-bottom: $leading / 2;
+        }
+    }
+
 
     code, pre {
         background-color: #DDD;

@@ -192,6 +192,9 @@ int pthread_spin_unlock(pthread_spinlock_t *lock) {
 ```
 ([full source](https://github.com/majek/dump/blob/master/msqueue/pthread_spin_lock_shim.h))
 
+Alternatively, [ConcurrencyKit](http://concurrencykit.org) is a high-quality library that provides loads of concurrency primitives, including spinlocks:
+
+* [http://concurrencykit.org/doc/ck_spinlock.html](http://concurrencykit.org/doc/ck_spinlock.html)
 
 </%block>
 </article>

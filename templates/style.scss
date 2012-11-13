@@ -167,7 +167,14 @@ article {
         font-size: $typesize*1.5;
         line-height: $leading*2;
     }
-    
+
+    .subtitle > h2 {  
+        /* weight of h3 */
+        font-size: $typesize*1.5;
+        line-height: $leading*2;
+        text-align: right;
+    }
+
     ul {
         list-style: outside disc;
     }

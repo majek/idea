@@ -112,7 +112,8 @@ to see if it is possible to do fingerprinting based on
 You can see the fingerprint of your browser using the online experiment:
 
  * https://p0f.popcnt.org/
- 
+
+Continue reading about [scanning SSL servers &#8594;](/2012-11-12-ssl-scanners/)<br>
 
 </%block>
 </article>

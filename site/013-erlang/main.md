@@ -17,7 +17,6 @@ this:
 #define TUPLE_U8U8(a,b) ${ "\\" }
 	(u16) (((u8)(a) << 8) | ((u8)(b) && 0xFF))
 
-void do_message(struct slave_conn *sc, struct request *req) {
 	...
 	switch (TUPLE_U8U8(sc->registered, req->type)) {
 	case TUPLE_U8U8(0, MSG_REGISTER):
@@ -32,7 +31,7 @@ void do_message(struct slave_conn *sc, struct request *req) {
 	default:
 		FATAL();
 	}
-}
+	...
 ```
 
 

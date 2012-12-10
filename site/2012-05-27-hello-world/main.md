@@ -16,8 +16,8 @@ in mind, allow me to keep on writing, in the same fashion as
 And what a blog that was.
 
 My last post on ["Majek's technical blog"](http://blogger.popcnt.org/)
-is two years old but surprisingly some content haven't aged that
-much. Just to name a few:
+is two years old but surprisingly some content haven't aged too
+much. To just name a few posts:
 
  * [Predictions on Google future](http://blogger.popcnt.org/2007/09/die-google-future-search-engines.html)
  * [Thoughts on social networks](http://blogger.popcnt.org/2007/06/my-theory-about-future-of-web.html)

@@ -99,7 +99,10 @@ python  26023 marek   13u  sock    0,7      0t0 841044 can't identify protocol
 python  26023 marek   14u  sock    0,7      0t0 841046 can't identify protocol
 ```
 
-Sounds like a good opportunity to take a look at `lsof` sources!
+Unfortunately, it looks like kernel removes all information about
+these sockets from `/proc/net/*`, `lsof` is not able to get any
+details about them and panics.
+
 
 </%block>
 </article>

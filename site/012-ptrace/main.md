@@ -71,5 +71,9 @@ syscall before iTunes calls it:
 
 That's it. Another day, another useless API.
 
+
+BTW. Charlie Miller have described this hack in his
+excellent [2008 Black Hat presentation on OS X](http://www.blackhat.com/presentations/bh-jp-08/bh-jp-08-Miller/BlackHat-Japan-08-Miller-Hacking-OSX.pdf).
+
 </%block>
 </article>

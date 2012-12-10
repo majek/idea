@@ -54,7 +54,7 @@ def generate(content, dst_dir, leading):
         ('padding-bottom', '%spx' % (leading - (height % leading),)),
         ]
 
-    return '''<div class="svgimage"><img style="%s" src="%s.png"></div>''' % (
+    return '''<div class="svgimage"><img style="%s" src="%s.svg"></div>''' % (
         join_style(style), ctx['file'])
 
 

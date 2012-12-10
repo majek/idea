@@ -51,15 +51,11 @@ def generate(content, dst_dir, leading):
     style = [
         ('width', '%spx' % (width,)),
         ('height', '%spx' % (height, )),
-        ('background', 'url(%s.png) no-repeat center center' % ctx['file']),
-        ('%sbackground' % ('' if not svg_disabled else 'x_',),
-         'rgba(0,0,0,0) url(%s.svg) no-repeat center center' % ctx['file']),
-        ('display', 'block'),
         ('padding-bottom', '%spx' % (leading - (height % leading),)),
         ]
 
-    return '''<div class="svgimage"><div style="%s"></div></div>''' % (
-        join_style(style))
+    return '''<div class="svgimage"><img style="%s" src="%s.png"></div>''' % (
+        join_style(style), ctx['file'])
 
 
 def do_generate(ctx, outfile, dot_data):

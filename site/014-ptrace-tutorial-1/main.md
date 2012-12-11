@@ -10,7 +10,7 @@ ${title}
 
 <div class="date">${date.strftime('%d %B %Y')}</div>
 
-Recently I've been experimenting with Linux
+Recently I've been experimenting with Linux's
 [`ptrace(2)`](http://www.kernel.org/doc/man-pages/online/pages/man2/ptrace.2.html)
 syscall. Unfortunately, there isn't any kind of "official"
 documentation for it and the manual page is quite poor. There are some
@@ -19,12 +19,12 @@ other attempts to document it, for example
 or in [several](http://www.linuxjournal.com/article/6100)
 [introductory](https://mikecvet.wordpress.com/2010/08/14/ptrace-tutorial/)
 [tutorials](http://www.secretmango.com/jimb/Whitepapers/ptrace/ptrace.html)
-online, but nothing explains how ptrace works from ground up.
+online, but nothing explains how ptrace works from the ground up.
 
 Ptrace was always treated by kernel developers as a half-baked hack
-and not a well designed debugging interface. Everyone agrees that it's
+and not a well-designed debugging interface. Everyone agrees that it's
 suboptimal and alternatives like
-[`utrace`](http://lwn.net/Articles/224772/) had been proposed. But
+[`utrace`](http://lwn.net/Articles/224772/) have been proposed. But
 utrace is not a favourite technology of Linus, and according to him
 ptrace will likely
 [stay with us for the predicable future](http://www.yarchive.net/comp/linux/utrace.html):
@@ -40,7 +40,7 @@ ptrace will likely
 Digging into ptrace
 --------
 
-Ptrace is a complex, low-level debugging facility, it's the magic
+Ptrace is a complex, low-level debugging facility, and the magic
 behind tools like `strace` and `gdb`. Unlike the new
 [SystemTap](https://en.wikipedia.org/wiki/SystemTap) debugging
 interface, ptrace doesn't require administrator rights.
@@ -57,7 +57,7 @@ Okay, but what exactly does it mean for a process to be "stopped" and
 what is [`wait(2)`](http://www.kernel.org/doc/man-pages/online/pages/man2/wait.2.html) doing?
 
 Ptrace reuses a common Unix mechanism of "stopping" and "continuing"
-processes. But let's forget about ptrace for a moment and let's dig
+processes. Let's forget about ptrace for a moment and dig
 deeper into this - the linux process state logic.
 
 Linux process states
@@ -65,7 +65,7 @@ Linux process states
 
 As in every Unix flavour, in Linux a process can be in a number of
 states. It's easiest to observe it in tools like `ps` or `top`: it's
-usually in the column named `S`. Documentation of `ps` describes the
+usually in the column named `S`. The documentation of `ps` describes the
 possible values:
 
 ```
@@ -80,8 +80,8 @@ PROCESS STATE CODES
    [...]
 ```
 
-Process starts its life in an `R` "running" and finishes after parent
-reaps it from the `Z` "zombie" state.
+A process starts its life in an `R` "running" state and finishes after
+its parent reaps it from the `Z` "zombie" state.
 
 <dot>
 digraph {
@@ -113,7 +113,7 @@ Bash and STOPPED
 ----------
 
 We're particularly interested in the `T` "stopped" state, so let's
-have a play with that. The easiest way to see it in action, is to use
+have a play with that. The easiest way to see it in action is to use
 the shell and press CTRL+z:
 
 ```
@@ -149,9 +149,9 @@ use something CPU-intensive instead of `sleep`, say: `yes > /dev/null`.
 SIGSTOP, SIGCONT
 ----------------
 
-When you press CTRL+z bash under the hood sends a `SIGSTOP` signal to
+When you press CTRL+z, under the hood bash sends a `SIGSTOP` signal to
 the foreground process. Similarly, on `bg` / `fg` bash sends a
-`SIGCONT` signal. Manual page
+`SIGCONT` signal. The manual page
 [`signal(7)`](http://www.kernel.org/doc/man-pages/online/pages/man7/signal.7.html)
 describes the signals:
 
@@ -175,7 +175,7 @@ The signals SIGKILL and SIGSTOP cannot be caught, blocked, or ignored.
 ```
 
 Actually, sending `SIGSTOP` and `SIGCONT` signals directly to a
-processes will work equally well and is indistinguishable from CTRL+z
+process will work equally well and is indistinguishable from CTRL+z
 and `bg`/`fg` in bash:
 
 ```
@@ -211,15 +211,15 @@ $ python -c "import os, signal; os.kill(os.getpid(), signal.SIGSTOP)"
 SIGCHLD and waitpid()
 ---------
 
-Whenever a child process changes its state, either gets stopped,
-continues or exits, two things happen to the parent process:
+Whenever a child process changes its state - either gets stopped,
+continues or exits - two things happen to the parent process:
 
  * it gets a `SIGCHLD` signal
  * a blocking [`waitpid(2)`](http://www.kernel.org/doc/man-pages/online/pages/man2/waitpid.2.html) (or `wait`) call may return
  
 By default `waitpid` blocks until a selected child exits, but by
 setting specific flags we can also receive notifications about other state
-changes: child process being stopped (flag `WUNTRACED`) or continued
+changes: a child process being stopped (flag `WUNTRACED`) or continued
 (flag `WCONTINUED`).
 
 Take a look at this code:
@@ -275,20 +275,20 @@ Zombies
 ------
 
 A zombie process is a process that exited successfully, but its state
-change wasn't yet acknowledged by the parent. Namely - parent didn't
-call `wait()` / `waitpid()` functions.
+change wasn't yet acknowledged by the parent. That is, the parent
+didn't call `wait()` / `waitpid()` functions.
 
-The `D` "zombie" process state is required in order to give parent
-time to ask kernel about the resources used by the deceased child
+The `D` "zombie" process state is required in order to give a parent
+time to ask the kernel about the resources used by the deceased child,
 using `getrusage(2)`. A parent informs a kernel that it's done with
 the child by calling `waitpid`.
 
-Most often parent doesn't really care about child process resources or
-exit status. In such case a common way to avoid zombies to install a
-`SIGCHLD` handler and call `waitpid` within it. Unfortunately `SIGCHLD`
-is unreliable and many signals may be coalesced into one. Therefore if
-you have more than one child process you may need to run `waitpid` in
-a loop to reap zombies, like this:
+Most often the parent doesn't really care about child process
+resources or exit status. In such case a common way to avoid zombies
+to install a `SIGCHLD` handler and call `waitpid` within
+it. Unfortunately `SIGCHLD` is unreliable and many signals may be
+coalesced into one. Therefore if you have more than one child process
+you may need to run `waitpid` in a loop to reap zombies, like this:
 
 ```
 ::c
@@ -301,7 +301,7 @@ static void sigchld_handler(int sig) {
 }
 ```
 
-Alternatively to totally avoid zombies one can explicitly set
+Alternatively, to totally avoid zombies, one can explicitly set
 `SIGCHLD` signal handler to `SIG_IGN` or use `SA_NOCLDWAIT` flag for
 `sigaction` (see NOTES in
 [`waitpid(2)`](http://www.kernel.org/doc/man-pages/online/pages/man2/wait.2.html#NOTES)):
@@ -312,7 +312,7 @@ signal(SIGCHLD, SIG_IGN);
 ```
 
 
-Wrapping up
+Wrapping up process states
 ----
 
 Process states form an interesting mechanism that is basically
@@ -334,18 +334,17 @@ Back to ptrace
 `ptrace` uses for debugging purposes. First, on initialisation ptrace
 causes the debugging process to temporarily become a parent of a
 debugged process (let's call it "adoption"). As a parent it will be
-notified about child process state changes. Next - various ptrace
-flags inform kernel to put child into "stopped" state when particular
-debugging events occur. When such an event is triggered parent
-receives `SIGCHLD`, can retrieve child status via `waitpid` and has a
-chance then to inspect the stopped child. When its done, it puts child
-back into "running" state.
+notified about child process state changes. Next, various ptrace flags
+inform the kernel to put the child into "stopped" state when
+particular debugging events occur. When such an event is triggered the
+parent receives `SIGCHLD`, can retrieve child status via `waitpid` and
+has a chance to inspect the stopped child. When it's done, it puts
+child back into "running" state.
 
-We'll se how to use `ptrace` to do this in the next part of this tutorial.
+We'll see how to use `ptrace` to do this in the next part of this tutorial.
 
-
-The way ptrace works is a huge abuse of original Unix process model
-and the "stopped" state, but in practice it seems to work quite
+The way ptrace works is a huge abuse of the original Unix process
+model and the "stopped" state, but in practice it seems to work quite
 well. However this mechanism is not very efficient due to the high
 overhead of constant context switches between the parent and the
 child.
@@ -373,7 +372,7 @@ kernel.yama.ptrace_scope = 1
 
 With this restriction in place untrusted `ptrace` can be only be run
 against the parent's genuine children, "adoption" is not possible
-anymore without administrator rights.
+any more without administrator rights.
 
 
 

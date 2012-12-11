@@ -24,10 +24,11 @@ online, but nothing explains how ptrace works from the ground up.
 Ptrace was always treated by kernel developers as a half-baked hack
 and not a well-designed debugging interface. Everyone agrees that it's
 suboptimal and alternatives like
-[`utrace`](http://lwn.net/Articles/224772/) have been proposed. But
-utrace is not a favourite technology of Linus, and according to him
-ptrace will likely
-[stay with us for the predicable future](http://www.yarchive.net/comp/linux/utrace.html):
+[`perf trace`](http://kernelnewbies.org/Linux_3.7#head-5f16e5d3f07c2a1601c98f4b81e522c12f6cae7b)
+and [`utrace`](http://lwn.net/Articles/224772/) have been
+proposed. But perf is very young and utrace is not a favourite
+technology of Linus, and according to him ptrace will likely
+[stay with us for the foreseeable future](http://www.yarchive.net/comp/linux/utrace.html):
 
 
 > &gt; ptrace is a nasty, complex part of the kernel which has<br>
@@ -41,9 +42,8 @@ Digging into ptrace
 --------
 
 Ptrace is a complex, low-level debugging facility, and the magic
-behind tools like `strace` and `gdb`. Unlike the new
-[SystemTap](https://en.wikipedia.org/wiki/SystemTap) debugging
-interface, ptrace doesn't require administrator rights.
+behind tools like `strace` and `gdb`. Importantly, ptrace doesn't
+require administrator rights.
 
 Let's start our journey with the
 [ptrace(2) man page](http://www.kernel.org/doc/man-pages/online/pages/man2/ptrace.2.html):
@@ -89,12 +89,12 @@ subgraph cluster_x{
 	D;
 	S;
 }
-	D -> R [label="syscall", dir=back];
-        R -> D [label="result", dir=back];
+	D -> R [label="uninterruptable sleep", dir=back];
+        R -> D [label="woken", dir=back];
         R -> T [dir=both, label="signal"];
         R -> Z [label="exit"];
-        R -> S [label="syscall"];
-        S -> R [label="result / signal"];
+        R -> S [label="interruptable sleep"];
+        S -> R [label="woken / signal"];
 }
 </dot>
 
@@ -105,8 +105,8 @@ subgraph cluster_x{
 can't stop myself from mentioning a completely irrelevant but
 interesting recently introduced linux task state:
 `TASK_KILLABLE`, discussion:
-[lwn.net](http://lwn.net/Articles/288056/),
-[ibm.com](http://www.ibm.com/developerworks/linux/library/l-task-killable/).)
+[one](http://lwn.net/Articles/288056/),
+[two](http://www.ibm.com/developerworks/linux/library/l-task-killable/).)
 
 
 Bash and STOPPED
@@ -149,8 +149,8 @@ use something CPU-intensive instead of `sleep`, say: `yes > /dev/null`.
 SIGSTOP, SIGCONT
 ----------------
 
-When you press CTRL+z, under the hood bash sends a `SIGSTOP` signal to
-the foreground process. Similarly, on `bg` / `fg` bash sends a
+When you press CTRL+z, under the hood kernel terminal driver sends a `SIGSTOP` signal to
+foreground processes. Similarly, on `bg` / `fg` bash sends a
 `SIGCONT` signal. The manual page
 [`signal(7)`](http://www.kernel.org/doc/man-pages/online/pages/man7/signal.7.html)
 describes the signals:
@@ -286,9 +286,12 @@ the child by calling `waitpid`.
 Most often the parent doesn't really care about child process
 resources or exit status. In such case a common way to avoid zombies
 to install a `SIGCHLD` handler and call `waitpid` within
-it. Unfortunately `SIGCHLD` is unreliable and many signals may be
-coalesced into one. Therefore if you have more than one child process
-you may need to run `waitpid` in a loop to reap zombies, like this:
+it. Unfortunately, as defined by Unix, many individual signals sent to
+the same process with the same signal number may be coalesced into
+one.  A single call to `SIGCHLD` signal handler might actually be
+triggered by more than one child state change. Therefore if you have
+more than one child process you may need to run `waitpid` in a loop to
+reap zombies, like this:
 
 ```
 ::c

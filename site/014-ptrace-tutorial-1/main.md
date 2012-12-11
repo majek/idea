@@ -25,10 +25,9 @@ Ptrace was always treated by kernel developers as a half-baked hack
 and not a well designed debugging interface. Everyone agrees that it's
 suboptimal and alternatives like
 [`utrace`](http://lwn.net/Articles/224772/) had been proposed. But
-utrace
-[is not a favourite technology of Linus](http://www.yarchive.net/comp/linux/utrace.html),
-and according to him ptrace will likely stay with us for the
-predicable future:
+utrace is not a favourite technology of Linus, and according to him
+ptrace will likely
+[stay with us for the predicable future](http://www.yarchive.net/comp/linux/utrace.html):
 
 
 > &gt; ptrace is a nasty, complex part of the kernel which has<br>
@@ -213,7 +212,7 @@ SIGCHLD and waitpid()
 ---------
 
 Whenever a child process changes its state, either gets stopped,
-continues or exits, two thigs happen to the parent process:
+continues or exits, two things happen to the parent process:
 
  * it gets a `SIGCHLD` signal
  * a blocking [`waitpid(2)`](http://www.kernel.org/doc/man-pages/online/pages/man2/waitpid.2.html) (or `wait`) call may return
@@ -256,7 +255,7 @@ waitpid()
 waitpid()
 ```
 
-The control flow is losely described by this diagram:
+The control flow is described by this diagram:
 
 <div class="image" style="height:392px"><img src="flow.png"></div>
 
@@ -332,7 +331,7 @@ Back to ptrace
 -----
 
 "Stopping" and "continuing" a process is exactly the mechanism that
-`ptrace` uses for debugging purposes. First, on initialization ptrace
+`ptrace` uses for debugging purposes. First, on initialisation ptrace
 causes the debugging process to temporarily become a parent of a
 debugged process (let's call it "adoption"). As a parent it will be
 notified about child process state changes. Next - various ptrace
@@ -343,7 +342,7 @@ chance then to inspect the stopped child. When its done, it puts child
 back into "running" state.
 
 This mechanism is a huge abuse of original Unix process model and the
-"stopped" state, but in practice it seems to work quite well. Hovewer
+"stopped" state, but in practice it seems to work quite well. However
 this mechanism is not very efficient due to the high overhead of
 constant context switches between the parent and the child.
 
@@ -355,8 +354,8 @@ In the beginning I quoted:
 > ptrace is a nasty, complex part of the kernel which has a long
 > history of problems
 
-Indeed, a number of serious secuirty issues were found in kernel
-`ptrace` code. This is so noticable that
+Indeed, a number of serious security issues were found in kernel
+`ptrace` code. This is so noticeable that
 [Ubuntu decided to disable the ability to run a ptrace](https://wiki.ubuntu.com/SecurityTeam/Roadmap/KernelHardening#ptrace_Protection)
 against unrelated processes by an untrusted user. You can see if your
 Linux has that restriction enabled by looking at the output of sysctl

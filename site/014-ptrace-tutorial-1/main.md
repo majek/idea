@@ -330,9 +330,9 @@ and quickly receives `SIGCONT`, the parent will receive `SIGCHLD`, but
 Back to ptrace
 -----
 
-"Stopping" and "continuing" a process is exactly the mechanism that
-`ptrace` uses for debugging purposes. First, on initialisation ptrace
-causes the debugging process to temporarily become a parent of a
+"Stopping" and "continuing" is the mechanism used by `ptrace` to
+controll a debugged process. First, on initialisation ptrace causes
+the current (debugging) process to temporarily become a parent of a
 debugged process (let's call it "adoption"). As a parent it will be
 notified about child process state changes. Next, various ptrace flags
 inform the kernel to put the child into "stopped" state when
@@ -344,10 +344,9 @@ child back into "running" state.
 We'll see how to use `ptrace` to do this in the next part of this tutorial.
 
 The way ptrace works is a huge abuse of the original Unix process
-model and the "stopped" state, but in practice it seems to work quite
-well. However this mechanism is not very efficient due to the high
-overhead of constant context switches between the parent and the
-child.
+model, but in practice it seems to work quite well. However this
+mechanism is not very efficient due to the high overhead of constant
+context switches between the parent and the child.
 
 
 Ptrace and security

@@ -341,10 +341,15 @@ receives `SIGCHLD`, can retrieve child status via `waitpid` and has a
 chance then to inspect the stopped child. When its done, it puts child
 back into "running" state.
 
-This mechanism is a huge abuse of original Unix process model and the
-"stopped" state, but in practice it seems to work quite well. However
-this mechanism is not very efficient due to the high overhead of
-constant context switches between the parent and the child.
+We'll se how to use `ptrace` to do this in the next part of this tutorial.
+
+
+The way ptrace works is a huge abuse of original Unix process model
+and the "stopped" state, but in practice it seems to work quite
+well. However this mechanism is not very efficient due to the high
+overhead of constant context switches between the parent and the
+child.
+
 
 Ptrace and security
 ----------

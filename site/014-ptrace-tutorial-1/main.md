@@ -26,7 +26,7 @@ and not a well-designed debugging interface. Everyone agrees that it's
 suboptimal and alternatives like
 [`perf trace`](http://kernelnewbies.org/Linux_3.7#head-5f16e5d3f07c2a1601c98f4b81e522c12f6cae7b)
 and [`utrace`](http://lwn.net/Articles/224772/) have been
-proposed. But perf is very young and utrace is not a favourite
+proposed. Perf is very young and utrace is not a favourite
 technology of Linus, and according to him ptrace will likely
 [stay with us for the foreseeable future](http://www.yarchive.net/comp/linux/utrace.html):
 
@@ -278,7 +278,7 @@ A zombie process is a process that exited successfully, but its state
 change wasn't yet acknowledged by the parent. That is, the parent
 didn't call `wait()` / `waitpid()` functions.
 
-The `D` "zombie" process state is required in order to give a parent
+The `Z` "zombie" process state is required in order to give a parent
 time to ask the kernel about the resources used by the deceased child,
 using `getrusage(2)`. A parent informs a kernel that it's done with
 the child by calling `waitpid`.

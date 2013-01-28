@@ -32,6 +32,10 @@ within the hot code - to get even more accurate cycle count of your
 code consider moving the `cycles` calculation out of the hot code
 section.
 
+Additionally, to get accurate measurements you need to subtrack the
+fixed cost of the timing code. On my i7 CPU it's 36 cycles (including
+the `cycles` calculation).
+
 ```
 #ifdef __i386__
 #  define RDTSC_DIRTY "%eax", "%ebx", "%ecx", "%edx"
@@ -62,7 +66,7 @@ section.
                      "CPUID\n\t"                           ${ "\\" }
                      : "=r" (cyc_high), "=r" (cyc_low)     ${ "\\" }
                      :: RDTSC_DIRTY);                      ${ "\\" }
-        (cycles) = ((uint64_t)cyc_high << 32) | cyc_low;  k ${ "\\" }
+        (cycles) = ((uint64_t)cyc_high << 32) | cyc_low;   ${ "\\" }
     } while(0)
 
 ```

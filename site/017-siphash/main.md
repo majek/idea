@@ -47,7 +47,7 @@ c
 ----
 
 I also wrote a
-[C version](https://github.com/majek/dump/blob/master/siphash/csiphash.c),
+[C version](https://github.com/majek/csiphash/blob/master/csiphash.c),
 although I must admit the code is quite closely based on the
 [reference implementation](https://131002.net/siphash/siphash24.c).
 
@@ -73,7 +73,7 @@ int main() {
 
 
 In my
-[C SipHash implementation](https://github.com/majek/dump/blob/master/siphash/csiphash.c)
+[C SipHash implementation](https://github.com/majek/csiphash/blob/master/csiphash.c)
 I tried to keep the code as short and as readable as possible. In
 total the code is 90-odd lines long of which around half is real
 code.

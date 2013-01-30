@@ -117,17 +117,17 @@ article > *, header {
     color: #00E;
     text-decoration: none;
 }
-        
+
 :visited  {
     color: #551A8B;
 }
-       
+
 a:hover {
     text-decoration: underline;
 }
 
 article {
-            
+
     h1, h2, h3, h4 {
         margin-bottom: $leading;
     }
@@ -168,7 +168,7 @@ article {
         line-height: $leading*2;
     }
 
-    .subtitle > h2 {  
+    .subtitle > h2 {
         /* weight of h3 */
         font-size: $typesize*1.5;
         line-height: $leading*2;
@@ -209,7 +209,7 @@ article {
     code, pre {
         background-color: #DDD;
         font-family: monospace;
-        /* Reducing line-height seems to work fine - ie: code block doesn't extend 
+        /* Reducing line-height seems to work fine - ie: code block doesn't extend
            the line: http://stackoverflow.com/questions/8395652/monospaced-font-throwing-line-height-out */
         line-height: $leading - 2;
     }
@@ -225,7 +225,7 @@ article {
         */
         -webkit-text-size-adjust: 90%;
     }
-    
+
     pre {
         padding-left: 8px;
         max-width: $main-width - 8px;
@@ -238,7 +238,7 @@ article {
     hr {
         @include hr;
     }
-    
+
     p:lang(en) {
         -moz-hyphens: auto;
         -webkit-hyphens: auto;
@@ -282,17 +282,17 @@ article {
             margin-left: 2.5em;
         }
     }
-    
+
     sup {
         font-size: $typesize / 1.5;
         margin-left: 2px;
         line-height: 1px;
-        vertical-align: super;        
+        vertical-align: super;
     }
 
     div.footnote {
         @include topbox;
-        
+
         font-size: $typesize / 1.2;
 
         > * {

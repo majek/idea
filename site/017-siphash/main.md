@@ -81,5 +81,8 @@ code.
 45 lines of C code is an excellent result for a strong hash. Thanks
 Jean-Philippe for a great hash!
 
+Continue reading about [bitslicing SipHash &#8594;](/2013-01-30-bitsliced-siphash/)<br>
+
+
 </%block>
 </article>

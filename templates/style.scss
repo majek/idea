@@ -34,8 +34,8 @@ body {
     color: #444;
     font-size: $typesize;
     line-height: $leading;
-    /* font-family: 'Lucida Grande', Arial, sans-serif; */
-    font-family: "Source Sans Pro", "Helvetica", "Arial", sans-serif;
+    font-family: 'Lucida Grande', Arial, sans-serif;
+    /* font-family: "Source Sans Pro", "Helvetica", "Arial", sans-serif; */
 
     background-color: #FAF4ED;
     @if $debug == 1 {

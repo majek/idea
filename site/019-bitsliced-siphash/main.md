@@ -191,7 +191,7 @@ Here's a half-round of SipHash from [my non-bitsliced code](https://github.com/m
 
 Nothing fancy. Just some bit rotations, two additions and two `xor`
 operations. It's worth noting that SipHash state is encapsulated in
-four 64 bit variables `a` - sour`d`.
+four 64 bit variables `a` - `d`.
 
 In the bitsliced implementation we'll be using
 [`gcc` vector notation](http://gcc.gnu.org/onlinedocs/gcc/Vector-Extensions.html),

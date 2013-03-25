@@ -29,9 +29,11 @@ Sounds good. Basically `RdRand` is a
 [RNG](https://en.wikipedia.org/wiki/Random_number_generation) using
 AES which seed (in theory) can't be extracted. Obviously, one need to
 trust Intel that the "on-processor entropy source" generates good
-entropy. It would be interesting to see if the available entropy
-correlates with temperature of the processor, but that's a completely
-different topic.
+entropy.
+
+For those interested in the inner workings of the hardware generator,
+[David Wragg suggests](https://twitter.com/dwragg/status/316243269434613761)
+an excellent article from IEEE: ["Behind Intel's New Random-Number Generator"](http://spectrum.ieee.org/computing/hardware/behind-intels-new-randomnumber-generator/0).
 
 Back to the instruction. Usage is not completely straightforward - one
 must check the `carry flag` to see if there is enough entropy. Intel manual describes this situation as "unlikely":

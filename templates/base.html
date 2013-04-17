@@ -11,6 +11,8 @@
   ## <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,900,400italic" type='text/css' rel='stylesheet' />
 
 
+  <link href="/rss.xml" type="application/rss+xml" title="RSS Feed" />
+
   <meta name="author" content="Marek" />
   <title>
     % if isinstance(title, unicode) or isinstance(title, str):
@@ -45,6 +47,8 @@ ${self.body()}
     <span id="footer-left">
       <a href="https://twitter.com/majek04">
         Catch me on <span>Twitter</span>
+      </a>
+      <a title="subscribe via RSS" href="/rss.xml">RSS
       </a>
     </span>
     <%block name="footerright">

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Marek's idea of the day</title>
+    <link>https://idea.popcount.org</link>
+    <description />
+    <language>en-gb</language>
+
+
+    % for year in reversed(sorted(sites_by_year.keys())):
+    % for site in reversed(sites_by_year[year]):
+    <item>
+      <title>${site['title']}</title>
+      <pubDate>${site['date822']}</pubDate>
+      <link>/${site['dir_name']}</link>
+      <description />
+    </item>
+    % endfor
+    % endfor
+
+
+  </channel>
+</rss>

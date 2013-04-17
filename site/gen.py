@@ -6,6 +6,8 @@ import sys
 import mako.lookup
 import collections
 import shutil
+import time
+import email.utils
 
 import common.filters
 import common.utils
@@ -25,6 +27,7 @@ for dir_name in filter(os.path.isdir, glob.glob('*')):
             continue
         yml['dir_name'] = common.utils.subdir_from_ctx(yml)
         assert yml['date']
+        yml['date822'] = email.utils.formatdate(time.mktime(yml['date'].timetuple()[:9]))
         sites.append(yml)
 
 
@@ -46,10 +49,14 @@ with open(os.path.join(dst_dir, 'index.html'), 'w') as f:
                                       input_encoding="utf-8")
     f.write( template.render(**ctx) )
 
+with open(os.path.join(dst_dir, 'rss.xml'), 'w') as f:
+    template = mako.template.Template(filename='rss.html', lookup=mylookup,
+                                      input_encoding="utf-8")
+    f.write( template.render(**ctx) )
+
 with open(os.path.join(dst_dir, '404.html'), 'w') as f:
     template = mako.template.Template(filename='404.html', lookup=mylookup,
                                       input_encoding="utf-8")
-
     f.write( template.render(**ctx) )
 
 for fname in ['zarowka.png', 'favicon.ico', '28px_grid_bg.gif', 'robots.txt']:

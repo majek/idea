@@ -1,5 +1,6 @@
 import scss
 import markdown as Markdown
+import urllib
 
 import markdown_urlize
 import markdown_wrap_h
@@ -38,3 +39,5 @@ class MakoFilters(object):
         return Markdown.markdown(text, extensions=self.markdown_extensions[:],
                                  encoding="utf-8",
                                  output_format="html5")
+    def url_escape(self, text):
+        return urllib.quote_plus(text.encode('utf-8'))

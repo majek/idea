@@ -1,0 +1,28 @@
+<%inherit file="base.html"/>
+
+<article>
+
+<%block filter="filters.markdown">
+
+${title}
+====================================
+
+<div class="date">${date.strftime('%d %B %Y')}</div>
+
+</%block>
+
+${next.body()}
+
+
+% if title:
+<div>
+  <span>&nbsp;</span>
+  <span style="float:right">
+    <a href="mailto:comment@popcount.org?subject=${'Idea of the day: ' + title | u}">
+      Leave a comment
+    </a>
+  </span>
+</div>
+% endif
+
+</article>

@@ -1,0 +1,102 @@
+###Our simplest function consists of a single instruction `ret`, but you
+###may wonder what it actually does. But first we need to introduce
+###`call` - the command used to actually run our function. 
+
+http://download-mirror.savannah.gnu.org/releases//pgubook/ProgrammingGroundUp-1-0-booksize.pdf
+```
+Parameter #N <--- N*4+4(%ebp)
+...
+Parameter 2 <--- 12(%ebp)
+Parameter 1 <--- 8(%ebp)
+Return Address <--- 4(%ebp)
+Old %ebp <--- (%ebp)
+Local Variable 1 <--- -4(%ebp)
+Local Variable 2 <--- -8(%ebp) and (%esp)
+```
+
+Calling a function with parameter
+---
+
+We now know how to allocate a stack frame, so we can try calling an
+external function. For that we need to push arguments on the stack and
+use the `call` instruction:
+
+```
+string:
+        .ascii "Hello World!\n\0"
+
+ENTRY(print_hello_world)
+    push %ebp
+    mov %esp, %ebp
+    sub $10, %esp
+
+    movl $string, 0(%esp)
+    call printf
+
+    leave
+    ret
+```
+
+If you compiled this code on Mac you'll see the following cryptic warning:
+
+```
+ld: warning: PIE disabled. Absolute addressing (perhaps -mdynamic-no-pic) not allowed in code signed PIE, but used in _print_hello_world from ccIGT0Lb.o. To fix this warning, don't compile with -mdynamic-no-pic or link with -Wl,-no_pie
+```
+
+Basically - linker complains that we're trying to access `string`
+using an absolute memory address, while everything on Mac is trying to
+be use
+[position independent code](https://en.wikipedia.org/wiki/Position-independent_code). This
+is done to get [ASLR](https://en.wikipedia.org/wiki/ASLR) working -
+absolute addressing collides with it.
+
+Position independent code
+---
+
+Making our code position independent is a bit tricky. Instead of
+directly addressing `$string` we need to address it relatively to
+current code address (assuming the string resides in the code
+segment). First, how to read current `%eip`? Unfortunately one can't
+just do `mov %eip, %eax`. But instead we can use a simple trick and
+pop the return IP from the stack:
+
+```
+_read_eip_to_ecx:
+    mov (%esp), %ecx
+    ret
+
+ENTRY(square_int_ebx)
+    push %ebp
+    mov %esp, %ebp
+    sub $10, %esp
+
+    call _read_eip_to_ecx
+current_addr:    # ecx = eip
+    mov STRING - current_addr(%ecx), (%esp)
+    call printf
+
+    leave
+    ret
+```
+
+Take a deep breath and try to understand this code. It does make a
+perfect sense when you understand why.
+
+Getting position independent code right is much harder
+and you probably should write in C. If you need to access global
+variables you're liklely to mess with the linker and that's a very bad
+idea.
+
+
+On a good side, this forces the assembly to avoid side effects and
+thus makes your code more functional, which is pretty cool.
+
+Still, manually writing assembly is cumbersome. Don't do it :)
+
+
+Summary
+---
+
+Now it should be clear why `%ebp` is used and when we can and can't
+modify `%esp`.
+xo

@@ -4,7 +4,11 @@
 
 <%block filter="filters.markdown">
 
+% if shorttitle:
+${shorttitle}
+% else:
 ${title}
+% endif
 ====================================
 
 <div class="date">${date.strftime('%d %B %Y')}</div>

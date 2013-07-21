@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Marek's idea of the day</title>
     <link>https://idea.popcount.org</link>
     <description />
     <language>en-gb</language>
+    <atom:link href="https://idea.popcount.org/rss.xml" rel="self" type="application/rss+xml" />
 
 
     % for year in reversed(sorted(sites_by_year.keys())):
@@ -12,7 +13,8 @@
     <item>
       <title>${site['title']}</title>
       <pubDate>${site['date822']}</pubDate>
-      <link>/${site['dir_name']}</link>
+      <link>https://idea.popcount.org/${site['dir_name']}</link>
+      <guid>https://idea.popcount.org/${site['dir_name']}</guid>
       <description />
     </item>
     % endfor

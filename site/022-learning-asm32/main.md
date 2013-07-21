@@ -88,7 +88,7 @@ $ ./step1
 Disassembling
 ---
 
-Instead of describing what happened, let me show you a a usefull Linux
+Instead of describing what happened, let me show you a a useful Linux
 tool: [`objdump`](http://linuxcommand.org/man_pages/objdump1.html). You can use it as a disassembler and see how our
 function looks in the compiled executable:
 
@@ -122,9 +122,16 @@ this line:
 ```
 
 This is the code that calls our function. It uses the `call`
-instruction. `call` is quite simple, it calculates the `%eip` of next
-instruction, puts it on the stack and jumps to the function pointer
-from the parameter. It assumes the function will exit using `ret`.
+instruction. Basic operation of `call` is quite simple, it calculates
+the `%eip` of next instruction, puts it on the stack and jumps to the
+function pointer from the parameter. It assumes the function will exit
+using `ret`.
+
+(I was asked to mention that neither
+[`call`](http://pdos.csail.mit.edu/6.828/2008/readings/i386/CALL.htm)
+nor
+[`ret`](http://pdos.csail.mit.edu/6.828/2008/readings/i386/RET.htm)
+are really "simple".)
 
 Dissecting call and ret
 ---
@@ -150,7 +157,7 @@ there by a `call`) and jumps to it. We can "improve" our
 `simplest_function` with the verbose version of `ret`:
 
 ```
-ENTRY(simplest_functionret_hack)
+ENTRY(simplest_function_ret_hack)
         pop %eax
         jmp *%eax
 ```
@@ -186,7 +193,7 @@ ENTRY(square_int)
     ret
 ```
 
-Why 4? Well, 4 recentmost bytes on the stack are the return
+Why 4? Well, 4 recent most bytes on the stack are the return
 instruction pointer pushed there by the `call`, so the parameters is
 4 bytes above that.
 
@@ -248,8 +255,8 @@ Prologue and epilogue
 
 Code responsible for preparing a stack frame is called a
 [function prologue](https://en.wikipedia.org/wiki/Function_prologue)
-and for destroing it
-[an epliogue](https://en.wikipedia.org/wiki/Function_epilogue#Epilogue).
+and for destroying it
+[an epilogue](https://en.wikipedia.org/wiki/Function_epilogue#Epilogue).
 
 Crafting a frame that way is so common that x86 has a shortcut
 instructions: `enter` and `leave`.

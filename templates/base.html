@@ -48,8 +48,9 @@ ${next.body()}
       <a href="https://twitter.com/majek04">
         Catch me on <span>Twitter</span>
       </a>
-      <a title="subscribe via RSS" href="/rss.xml">RSS
-      </a>
+      % if not title:
+      <a title="subscribe via RSS" href="/rss.xml">RSS</a>
+      % endif
     </span>
     <%block name="footerright">
     <span id="footer-right">

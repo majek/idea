@@ -1,12 +1,7 @@
-<%inherit file="base.html"/>
+<%inherit file="basecomment.html"/>
 
 <article>
 <%block filter="filters.markdown">
-
-${title}
-====================================
-
-<div class="date">${date.strftime('%d %B %Y')}</div>
 
 [SockJS-node](https://github.com/sockjs/sockjs-node) users noticed
 that the server seems to be leaking file descriptors when websockets

@@ -1,14 +1,7 @@
-<%inherit file="base.html"/>
+<%inherit file="basecomment.html"/>
 
 <article>
 <%block filter="filters.markdown">
-
-${title}
-====================================
-
-<div class="subtitle"><h2>${subtitle}</h2></div>
-
-<div class="date">${date.strftime('%d %B %Y')}</div>
 
 Recently I've been experimenting with Linux's
 [`ptrace(2)`](http://www.kernel.org/doc/man-pages/online/pages/man2/ptrace.2.html)

@@ -11,6 +11,10 @@ ${title}
 % endif
 ====================================
 
+% if subtitle:
+<div class="subtitle"><h2>${subtitle}</h2></div>
+% endif
+
 <div class="date">${date.strftime('%d %B %Y')}</div>
 
 </%block>

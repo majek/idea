@@ -16,10 +16,10 @@ The stages are:
 
  - The **frontend**, parsing original language and spiting out LLVM
    Intermediate Representation (IR) code.
- - The **optimizer**, mangling one IR into optimized equivalent
-   IR. This stage does all the usual optimizations like constant
+ - The **optimiser**, mangling one IR into optimised equivalent
+   IR. This stage does all the usual optimisations like constant
    propagation, dead code removal and so on.
- - The **backend**, taking IR and producing machine code optimized for
+ - The **backend**, taking IR and producing machine code optimised for
    a specific CPU.
 
 The crucial part is IR. It's a common language that sits between the
@@ -33,7 +33,7 @@ What is IR?
 ---
 
 [IR is a low-level programming language](http://llvm.org/docs/LangRef.html),
-pretty simillar to assembly. From the AOSA book:
+pretty similar to assembly. From the AOSA book:
 
 > Unlike most RISC instruction sets, LLVM is strongly typed with a simple type system and some details of the machine are abstracted away. For example, the calling convention is abstracted through call and ret instructions and explicit arguments. Another significant difference from machine code is that the LLVM IR doesn't use a fixed set of named registers, it uses an infinite set of temporaries named with a % character.
 
@@ -75,7 +75,7 @@ IR is shortest and should be easiest to read:
 $ clang -Os -S -emit-llvm sample.c -o sample.ll
 ```
 
-After removing some unnecesary boilerplate we get:
+After removing some unnecessary boilerplate we get:
 
 ```
 #!llvm
@@ -94,12 +94,12 @@ For more details please see
 [the official documentation of the IR language](http://llvm.org/docs/LangRef.html).
 
 
-Optimizing
+Optimising
 ---
 
-If you wish, you can run LLVM optimizations manually. The tool `opt`
-can transform unoptimized IR to an optimized one. Our code is already
-optimized, we used the `-Os` flag, but you can run `opt` anyway:
+If you wish, you can run LLVM optimisations manually. The tool `opt`
+can transform unoptimised IR to an optimised one. Our code is already
+optimised, we used the `-Os` flag, but you can run `opt` anyway:
 
 ```
 ::bash
@@ -165,7 +165,7 @@ you're lucky, but writing IR can have advantages:
    future CPU generations.
  - Your code won't work on older CPU's.
  - Porting assembly to another CPU architecture is tedious.
- - You even need to spend time porting your assembler to differnet
+ - You even need to spend time porting your assembler to different
    operating systems. For example global symbols need underscores on
    mac. Dealing with `#include`'s can be painful.
  - You need to be a serious expert to write assembly better than an
@@ -174,10 +174,10 @@ you're lucky, but writing IR can have advantages:
 If you really can write better assembly than LLVM, please:
 
 > Don't write any more assembler by hand - write IR and create new
-> LLVM optimizers insted.
+> LLVM optimisers instead.
 
-It'll benefit everbody, not only you. Think about it - you won't need
-to write the same optimizations all over again on your next project!
+It'll benefit everybody, not only you. Think about it - you won't need
+to write the same optimisations all over again on your next project!
 
 Vectors in IR
 ---
@@ -207,7 +207,7 @@ multiply_four:
         ret
 ```
 
-Similairly the result for ARM with `-march=neon` is decent:
+Similarly the result for ARM with `-march=neon` is decent:
 
 ```
 ::s
@@ -232,7 +232,7 @@ and maintainable.
 
 If for some reason you're not happy with the machine code LLVM
 produces - write
-[an LLVM optimizer (AOSA chapter 11.3.1)](http://www.aosabook.org/en/llvm.html)!
+[an LLVM optimiser (AOSA chapter 11.3.1)](http://www.aosabook.org/en/llvm.html)!
 
 
 </%block>

@@ -237,6 +237,17 @@ article {
         overflow-wrap: break-word;  /* New css */
     }
 
+    table.codehilitetable {
+        pre {
+            margin-bottom: 0px;
+        }
+        td, th {
+            padding-left: 0px;
+            padding-right: 0px;
+            border: 0px;
+        }
+    }
+
     hr {
         @include hr;
     }

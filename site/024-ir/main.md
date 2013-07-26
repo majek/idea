@@ -266,3 +266,11 @@ multiply_four:
    mov pc,lr
 
 </pre>
+
+<pre>
+From: giampaolo eusebi
+
+To the attention of Vitaly:
+From the ARM information center Assembler reference:
+For the MUL and MLA instructions, Rn must be different from Rd in architectures before ARMv6.
+</pre>

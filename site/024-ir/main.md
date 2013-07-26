@@ -15,7 +15,7 @@ height="206px"><div>Schema</div></div>
 The stages are:
 
  - The **frontend**, parsing original language and spiting out LLVM
-   Intermediate Representation (IR) code.
+   Intermediate Representation (IR) code[^1].
  - The **optimiser**, mangling one IR into optimised equivalent
    IR. This stage does all the usual optimisations like constant
    propagation, dead code removal and so on.
@@ -226,13 +226,43 @@ Finally
 ---
 
 I think it's amazing that once written pseudo-assembly code can be
-retargetted to any architecture. For me IR has all the advantages of
+retargetted to any architecture[^2]. For me IR has all the advantages of
 assembly without any of its problems: fast, expressive, retargettable
 and maintainable.
 
 If for some reason you're not happy with the machine code LLVM
 produces - write
-[an LLVM optimiser (AOSA chapter 11.3.1)](http://www.aosabook.org/en/llvm.html)!
+[an LLVM optimiser (AOSA chapter 11.3.1)](http://www.aosabook.org/en/llvm.html).
+
+
+[^1]: Mayson Lancaster noted in a comment that LLVM IR is not the first intermediate language in the history of computing. For example this was discussed in [Michael Franz's Phd thesis in '94](http://moldovacc.md/acoulichev/th10497.pdf).
+
+[^2]: Many readers note this is not that simple. [Frontend generated IR may differ depending on backend architecture](http://llvm.org/devmtg/2011-09-16/EuroLLVM2011-MoreTargetIndependentLLVMBitcode.pdf). I still believe it's possible to write cross-platform IR.
+
+
+
 
 
 </%block>
+
+<hr>
+<h4>Comments</h4>
+
+<pre>
+From: Vitaly Vidmirov
+
+> "Similarly the result for ARM with -march=neon is decent:"
+
+Are you joking? Right? ARM code in your examples is ridiculous. It is sad, that LLVM can't eliminate useless movs even in such trivial examples.
+
+square_unsigned:
+   mul r0,r0,r0
+   mov pc,lr
+
+Your examples use soft-float-abi then floating point data transfered in integer registers. For compatibility with FPU-less processors.  ARM processors before Cortex A15 has decoupled FPU, so fp&lt;-&gt;int transfers cause huge stalls to serialize pipelines.
+
+multiply_four:
+   vmul.i32  q0, q0, q1
+   mov pc,lr
+
+</pre>

@@ -26,9 +26,20 @@ ${next.body()}
 <div>
   <span>&nbsp;</span>
   <span style="float:right">
+    % if ycombinator:
+    Discuss on <a href="http://news.ycombinator.com/item?id=${ycombinator}">YCombinator</a>
+    <br>
+    % endif
+    % if not ycombinator:
     <a href="mailto:comment@popcount.org?subject=${'Idea of the day: ' + title | u}">
-      Leave a comment
+      Leave a comment.
     </a>
+      % else:
+    or
+    <a href="mailto:comment@popcount.org?subject=${'Idea of the day: ' + title | u}">
+      leave a comment here.
+    </a>
+    % endif
   </span>
 </div>
 % endif

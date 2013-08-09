@@ -1,0 +1,25 @@
+
+But first, let's 
+-fomit-frame-pointer
+---
+
+First, for the warmup. Do you know what `-fomit-frame-pointer` does?
+It's enabled by default, so you should be aware of it.
+
+```s
+$ objdump -d notomitted --no-show-raw-insn | awk '/<fun>:/,/ret/'|cut -f 2
+08048404 <fun>:
+    push   %ebp         ; prologue
+    mov    %esp,%ebp
+    pop    %ebp         ; epilogue
+    ret
+```
+
+```s
+$ objdump -d omitted --no-show-raw-insn | awk '/<fun>:/,/ret/'|cut -f 2
+080483f4 <fun>:
+    ret
+```
+
+GDB used to be confused by functions without stack frames, but
+nowadays it seem to be coping well.

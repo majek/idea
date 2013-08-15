@@ -376,6 +376,11 @@ article {
 
     margin-bottom: 2*$leading;
 
+    /* verbatim after this tag shall be smaller */
+    div.smallfont + div > pre {
+        font-size: 12px;
+    }
+
 } /* article */
 
 

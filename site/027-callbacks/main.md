@@ -12,7 +12,7 @@ It's just a programming style, not a big deal usually, but it becomes
 an issue when a platform forces you to *only* use the callback
 style. I'm talking about you, JavaScript.
 
-In my opinon people forget an important point about in the discussion
+In my opinion people forget an important point about in the discussion
 about callbacks.
 
 ##It's not about what you can and can't code using callbacks - we're all
@@ -53,7 +53,7 @@ There are two things wrong in this code:
  1. It's impossible to slow down the pace of accepting new incoming
    client connections.
  2. A noisy client will be able to crash our server, as `c.write` is
-   non-blocking and will buffer infinite amout of data in memory (this
+   non-blocking and will buffer infinite amount of data in memory (this
    can be partially solved with a node.js Stream API, more on that
    later).
 
@@ -137,7 +137,7 @@ line of people passing bricks - when the last person says: "no more
 bricks please!" everybody in the line will have hands full!  The
 longer the queue the more bricks will get "buffered".
 
-Particulairly in node using Streams it's possible to receive plenty
+Particularly in node using Streams it's possible to receive plenty
 of data before the back pressure kicks in.
 
 ```

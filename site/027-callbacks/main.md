@@ -9,11 +9,11 @@ Programmers tend to be very opinionated about programming with
 [callbacks](https://en.wikipedia.org/wiki/Callbacks).
 
 It's just a programming style, not a big deal usually, but it becomes
-an issue when a platform forces you to *only* use the callback
+an issue when a platform forces you to use *only* the callback
 style. I'm talking about you, JavaScript.
 
-In my opinion people forget an important point about in the discussion
-about callbacks.
+In my opinion people forget an important point in the discussion about
+callbacks.
 
 ##It's not about what you can and can't code using callbacks - we're all
 ##working with turing-complete languages so, it's possible to express
@@ -53,7 +53,7 @@ There are two things wrong in this code:
  1. It's impossible to slow down the pace of accepting new incoming
    client connections.
  2. A noisy client will be able to crash our server, as `c.write` is
-   non-blocking and will buffer infinite amount of data in memory (this
+   non-blocking and will buffer an infinite amount of data in memory (this
    can be partially solved with a node.js Stream API, more on that
    later).
 
@@ -64,18 +64,18 @@ The first problem: we can't slow down the pace of accepting new
 connections. The `accept(2)` syscall is being implicitly handled by
 node.
 
-As far as I know there isn't a way around it in node.js. It's caused
-by the design of the non-blocking API that doesn't support
-flow-control. You can't just tell to server: don't accept any more
-client connections, please!
+As far as I know there isn't a way around it. It's caused by the
+design of the non-blocking API that doesn't support flow-control. You
+can't tell the server "don't accept any more client connections,
+please!"
 
-Astute reader may note
+An astute reader may notice the
 [`server.maxConnections` property](http://nodejs.org/api/net.html#net_server_maxconnections). But
 this is not the same - it causes client sockets to be *closed* when
 the limit is reached. I don't want clients to get actively rejected, I
 don't want to `accept` them in the first place!
 
-In my ideal programming environment the `accept` would just be
+In my ideal programming environment the `accept` would be
 blocking. I'd have a main coroutine for a server looking like this:
 
 ```
@@ -89,13 +89,14 @@ while true:
 
 To work around this problem node.js could add a new method to "pause"
 the `net.Server` for a while. But this is a bad design as well.  Let's
-explain this using our second problem - the design of node.js Streams.
+explain this using our second illustration - the design of node.js
+Streams.
 
 2) Streams suffer a race condition
 ---
 
-In [node.js Streams](http://nodejs.org/api/stream.html#stream_stream)
-are a common API that supports a basic flow control for common data
+[Node.js Streams](http://nodejs.org/api/stream.html#stream_stream)
+are a common API that support basic flow control for common data
 sources that can `read` and/or `write`. In our code the `client`
 socket is a valid node.js Stream and using Streams API our code gets
 even simpler:
@@ -115,12 +116,12 @@ the `write` method.
 
 This code doesn't suffer from the described problem - now a single
 client won't be able to crash node with out-of-memory. It works as
-follows: on `data` event bytes are being passed to the `write` method.
-The
-[`write` method can return `false`](http://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback),
+follows: on the `data` event bytes are passed to the `write` method.
+The [`write` method can return
+`false`](http://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback),
 meaning "please stop writing for now". The stream understands this and
-calls `pause` method on the reader. On the `drain` event 
-the reader `resumes`.
+calls the `pause` method on the reader. On the `drain` event the
+reader `resumes`.
 
 As a result the stream will stop reading from `c` if data can't be
 written to `c`. Clever, right?
@@ -134,7 +135,7 @@ suffers a race condition: it's possible to get plenty of data before
 the writer reacts and stops the reader. The stream needs to actively
 inform the reader when something happens to the writer. It's like a
 line of people passing bricks - when the last person says: "no more
-bricks please!" everybody in the line will have hands full!  The
+bricks please!" everybody in the line will have their hands full!  The
 longer the queue the more bricks will get "buffered".
 
 Particularly in node using Streams it's possible to receive plenty
@@ -187,8 +188,8 @@ received 65536
 
 Once again: we received a chunk of data *after* we told the server to
 stop receiving. In the real world the problem is even more serious:
-there is usually a significant delay between the reader and the writer
-and even more data will get buffered.
+there is usually a significant delay between the reader and the
+writer, so even more data will get buffered.
 
 Let's try to make it more concrete: imagine a web server that needs to
 speak to Redis, SQL database and read a local file before crafting an
@@ -197,12 +198,12 @@ slow and react accordingly: tell the reader to stop receiving new
 requests from the client. But in the meantime the time has passed and
 your server could have already received thousands of HTTP requests
 from the evil client. The race condition in the Stream API is serious
-as the delay between receiving an evil request and noticing the client
-doesn't read the data is often significant.
+due to the fact that the delay between receiving an evil request and
+noticing that evil client doesn't read can be significant.
 
 In our code the only solution to this problem is to deliver exactly
-one data chunk and wait for a confirmation before sending another
-one. Using the bricks parallel: the last person would shout "please
+one data chunk and wait for a confirmation before receiving another
+one. Using the bricks analogy: the last person would shout "please
 give me a new brick" when it dealt with the last one, thus
 guaranteeing that no matter how many hands are in the line, at most
 one brick will be processed at a time.
@@ -220,19 +221,18 @@ In programming, the code can be written in one of two ways:
 
 Synchronous code usually does the first thing, callbacks do the
 second. Neither is better or worse, but in the "pull" model it's much
-easier reason about the flow control. On the other hand in a badly
-written "pull" code a fast producer or a slow consumer can overwhelm
+easier to reason about the flow control. On the other hand in a badly
+written "push" code a fast producer (or a slow consumer) can overwhelm
 the program.
 
-Synchronous code (ideally using lightweight coroutines) embeds the
-flow control in its structure. It's much harder to express the data
-flow control using callbacks[^2].
+Synchronous code embeds the flow control in its structure. It's much
+harder to express the data flow control using callbacks[^2].
 
 Finally, please don't get me wrong. Although this rant is focused
 around node.js it's not limited to it. It's generally hard to think
-about end-to-end flow controll in an callback based environments. It's
-impossible to figure out good callback based API's when you don't have
-tools to help you with flow control issues.
+about end-to-end flow control in an callback based environments. It's
+impossible to design good callback based API's when you don't have
+tools to deal with data flow control.
 
 
 [^2]: There are ways to do "pull" using callbacks, for example by

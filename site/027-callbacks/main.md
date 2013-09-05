@@ -1,0 +1,213 @@
+
+<%inherit file="basecomment.html"/>
+
+<%block filter="filters.markdown">
+
+<h2>... it's about the flow control</h2>
+
+Programmers tend to be very opinionated about programming with
+[callbacks](https://en.wikipedia.org/wiki/Callbacks).
+
+It's just a programming style, not a big deal usually, but it becomes
+an issue when a platform forces you to *only* use the callback
+style. I'm talking about you, JavaScript.
+
+In my opinon people forget an important point about in the discussion
+about callbacks.
+
+##It's not about what you can and can't code using callbacks - we're all
+##working with turing-complete languages so, it's possible to express
+##_any_ program in _any_ language and paradigm.
+
+
+The problem is: different programming styles[^1] encourage different
+solutions, and not all solutions are equally good. In particular
+forcing people to use callbacks encourages _bad_ solutions to common
+problems. Most annoyingly it makes it very easy to forget about data
+flow control.
+
+[^1]: different language constructs, programming style, syntactic
+      sugar, libraries, etc
+
+Let me start with an example of a broken Node.js API.
+
+Yup, it's an Echo server again
+----
+
+Here's a naive [echo server](https://en.wikipedia.org/wiki/Echo_Protocol) in node.js:
+
+```.js
+var net = require('net');
+
+var server = net.createServer();
+server.on('connection', function(c) {
+  c.on('data', function(data) {
+    c.write(data);
+  });
+});
+server.listen(10007)
+```
+
+There are two things wrong in this code:
+
+ * It's impossible to slow down the pace of accepting new incoming
+   client connections.
+ * A noisy client will be able to crash our server, as `c.write` is
+   non-blocking and will buffer infinite amout of data in memory (this
+   can be partially solved with a node.js Stream API, more on that
+   later).
+
+1) The implicit `accept`
+---
+
+The first problem: we can't slow down the pace of accepting new
+connections. The `accept(2)` syscall is being implicitly handled by
+node.
+
+As far as I know there isn't a way around it in node.js. It's caused
+by the design of the non-blocking API that doesn't support
+flow-control. You can't just tell to server: don't accept any more
+client connections, please!
+
+Astute reader may note
+[`server.maxConnections` property](http://nodejs.org/api/net.html#net_server_maxconnections). But
+this is not the same - it causes client sockets to be *closed* when
+the limit is reached. I don't want clients to get actively rejected, I
+don't want to `accept` them in the first place!
+
+In my ideal programming environment the `accept` would just be
+blocking. I'd have a main coroutine for a server looking like this:
+
+```
+while true:
+    if can_serve_more_clients():
+        client = server.accept()
+        deal_with_the_client(client)
+    else:
+        block_until_can_serve_more_clients()
+```
+
+To work around this problem node.js could add a new method to "stop"
+the `net.Server` for a while. But this is a bad design as well.  Let's
+explain this using our second problem - the design of node.js Streams.
+
+2) Streams don't solve the problem
+---
+
+In [node.js Streams](http://nodejs.org/api/stream.html#stream_stream)
+are a common API that supports a basic flow control for common data
+sources that can `read` and/or `write`. In our code the `client`
+socket is a valid node.js Stream and using Streams API our code gets
+even simpler:
+
+```.js
+var net = require('net');
+
+var server = net.createServer();
+server.on('connection', function(c) {
+    c.pipe(c);
+});
+server.listen(10007)
+```
+
+The `pipe` command forwards all data received on the `data` event to
+the `write` method.
+
+This code doesn't suffer from the described problem - now a single
+client won't be able to crash node with out-of-memory. It works as
+follows: on `data` event bytes are being passed to the `write` method.
+The
+[`write` method can return `false`](http://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback),
+meaning "please stop writing for now". The stream understands this and
+calls `pause` method on the reader. On the `drain` event 
+the reader `resumes`.
+
+As a result the stream will stop reading from `c` if data can't be
+written to `c`. Clever, right?
+
+First, I believe most node.js programmers (including myself) don't
+understand Streams and just don't implement the Stream internal
+interfaces correctly.
+
+But even if Streams were properly implemented everywhere the API
+suffers an issue: it's possible to get plenty of data before the
+writer reacts and stops the reader. The stream needs to actively
+inform the reader when something happens to the writer. It's like a
+line of people passing bricks - when the last person says: "no more
+bricks please!" everybody in the line will have hands full!  The
+longer the queue the more bricks will get "buffered".
+
+Particulairly in node using Streams it's possible to receive plenty
+of data before the back pressure kicks in.
+
+```
+var net = require('net');
+
+var server = net.createServer();
+server.on('connection', function(c) {
+    c.pipe(c);
+    c.on('data', function(d) {
+        console.log('received', d.length);
+    });
+    c.on('drain', function(d) {
+        console.log('it\'s okay to receive');
+    });
+    var p = c.push;
+    c.push = function(chunk) {
+        var r = p.apply(c, [chunk]);
+        if (r == false)
+            console.log('stop receiving now!');
+        return r;
+    }
+});
+server.listen(10007);
+```
+
+
+##```
+##$ node echo_2.js
+##
+##events.js:72
+##        throw er; // Unhandled 'error' event
+##              ^
+##Error: write ECONNRESET
+##    at errnoException (net.js:901:11)
+##    at Object.afterWrite (net.js:718:19)
+##```
+
+When you run this code and start a noisy client that floods the server
+with plenty of data, you'll see:
+
+```text
+it's okay to receive
+received 65536
+stop receiving!
+received 65536
+```
+
+Once again: we received 65KiB of data *after* we told the server to
+stop receiving. In real world the problem is even more serious: there
+is usually a significant delay between the reader and the writer and
+even more data will get buffered.
+
+Conclusion
+---
+
+In programming, the code can be written in one of two ways:
+
+ * It can "pull" the data from the source.
+ * It can "push" the data to the destination.
+
+Synchronous code usually does the first thing, callbacks do the
+second. Neither is better or worse, but in the "push" model it's much
+easier to forget about the flow control. In such case a fast producer
+or a slow consumer can easily overwhelm the program.
+
+Synchronous code (ideally using lightweight coroutines) embeds the
+flow control in its structure. It's easy to argue about the flow of
+data, where it blocks and where potential bottlenecks lie.
+
+It's much harder to express the data flow control using callbacks.
+
+
+</%block>

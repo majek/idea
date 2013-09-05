@@ -226,7 +226,14 @@ the program.
 
 Synchronous code (ideally using lightweight coroutines) embeds the
 flow control in its structure. It's much harder to express the data
-flow control using callbacks[2].
+flow control using callbacks[^2].
+
+Finally, please don't get me wrong. Although this rant is focused
+around node.js it's not limited to it. It's generally hard to think
+about end-to-end flow controll in an callback based environments. It's
+impossible to figure out good callback based API's when you don't have
+tools to help you with flow control issues.
+
 
 [^2]: There are ways to do "pull" using callbacks, for example by
 using credit based flow control.

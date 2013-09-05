@@ -26,8 +26,8 @@ forcing people to use callbacks encourages _bad_ solutions to common
 problems. Most annoyingly it makes it very easy to forget about data
 flow control.
 
-[^1]: different language constructs, programming style, syntactic
-      sugar, libraries, etc
+[^1]: Different language constructs, programming style, syntactic
+      sugar, libraries, etc.
 
 Let me start with an example of a broken Node.js API.
 
@@ -50,9 +50,9 @@ server.listen(10007)
 
 There are two things wrong in this code:
 
- * It's impossible to slow down the pace of accepting new incoming
+ 1. It's impossible to slow down the pace of accepting new incoming
    client connections.
- * A noisy client will be able to crash our server, as `c.write` is
+ 2. A noisy client will be able to crash our server, as `c.write` is
    non-blocking and will buffer infinite amout of data in memory (this
    can be partially solved with a node.js Stream API, more on that
    later).
@@ -87,11 +87,11 @@ while true:
         block_until_can_serve_more_clients()
 ```
 
-To work around this problem node.js could add a new method to "stop"
+To work around this problem node.js could add a new method to "pause"
 the `net.Server` for a while. But this is a bad design as well.  Let's
 explain this using our second problem - the design of node.js Streams.
 
-2) Streams don't solve the problem
+2) Streams suffer a race condition
 ---
 
 In [node.js Streams](http://nodejs.org/api/stream.html#stream_stream)
@@ -126,12 +126,12 @@ As a result the stream will stop reading from `c` if data can't be
 written to `c`. Clever, right?
 
 First, I believe most node.js programmers (including myself) don't
-understand Streams and just don't implement the Stream internal
-interfaces correctly.
+understand Streams and just don't implement the Stream interfaces
+correctly.
 
 But even if Streams were properly implemented everywhere the API
-suffers an issue: it's possible to get plenty of data before the
-writer reacts and stops the reader. The stream needs to actively
+suffers a race condition: it's possible to get plenty of data before
+the writer reacts and stops the reader. The stream needs to actively
 inform the reader when something happens to the writer. It's like a
 line of people passing bricks - when the last person says: "no more
 bricks please!" everybody in the line will have hands full!  The
@@ -185,12 +185,32 @@ stop receiving!
 received 65536
 ```
 
-Once again: we received 65KiB of data *after* we told the server to
-stop receiving. In real world the problem is even more serious: there
-is usually a significant delay between the reader and the writer and
-even more data will get buffered.
+Once again: we received a chunk of data *after* we told the server to
+stop receiving. In the real world the problem is even more serious:
+there is usually a significant delay between the reader and the writer
+and even more data will get buffered.
 
-Conclusion
+Let's try to make it more concrete: imagine a web server that needs to
+speak to Redis, SQL database and read a local file before crafting an
+HTTP response. Then, the writer may notice the network connection is
+slow and react accordingly: tell the reader to stop receiving new
+requests from the client. But in the meantime the time has passed and
+your server could have already received thousands of HTTP requests
+from the evil client. The race condition in the Stream API is serious
+as the delay between receiving an evil request and noticing the client
+doesn't read the data is often significant.
+
+In our code the only solution to this problem is to deliver exactly
+one data chunk and wait for a confirmation before sending another
+one. Using the bricks parallel: the last person would shout "please
+give me a new brick" when it dealt with the last one, thus
+guaranteeing that no matter how many hands are in the line, at most
+one brick will be processed at a time.
+
+This damages the throughput but guarantees we won't run out of memory
+even in case of an evil client.
+
+Push and pull
 ---
 
 In programming, the code can be written in one of two ways:
@@ -199,15 +219,16 @@ In programming, the code can be written in one of two ways:
  * It can "push" the data to the destination.
 
 Synchronous code usually does the first thing, callbacks do the
-second. Neither is better or worse, but in the "push" model it's much
-easier to forget about the flow control. In such case a fast producer
-or a slow consumer can easily overwhelm the program.
+second. Neither is better or worse, but in the "pull" model it's much
+easier reason about the flow control. On the other hand in a badly
+written "pull" code a fast producer or a slow consumer can overwhelm
+the program.
 
 Synchronous code (ideally using lightweight coroutines) embeds the
-flow control in its structure. It's easy to argue about the flow of
-data, where it blocks and where potential bottlenecks lie.
+flow control in its structure. It's much harder to express the data
+flow control using callbacks[2].
 
-It's much harder to express the data flow control using callbacks.
-
+[^2]: There are ways to do "pull" using callbacks, for example by
+using credit based flow control.
 
 </%block>

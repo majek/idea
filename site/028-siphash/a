@@ -1,0 +1,8 @@
+ and feed it to the
+SipRound twice: once with a particular single bit zeroed, once with it
+set. At this point we can compare two SipRound outputs and draw the
+differences.
+
+
+The idea is to run SipRound many times on random data and see wh
+

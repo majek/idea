@@ -212,12 +212,7 @@ Re-running the program with `bit=191` confirms it:
 63 127 159 212 255 
 ```
 
-
-This property was noticed in the SipHash paper:
-
-> The best [truncated differentials] results were obtained by setting 1-bit difference in the most significant bit of *v3*.
-
-
+I don't think this affects SipHash security, still, it's interesting.
 
 
 Two SipRounds

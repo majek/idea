@@ -99,7 +99,7 @@ set mytics 8
 
 
 set pm3d map
-set pm3d corners2color c3
+set pm3d corners2color c4
 
 set palette defined (0 "white", 0.80 "black", 1 "red")
 
@@ -186,7 +186,7 @@ set ytics 1
 
 
 set pm3d map
-set pm3d corners2color c3
+set pm3d corners2color c4
 
 set palette defined (0 "white", 0.80 "black", 1 "red")
 
@@ -244,7 +244,7 @@ set mytics 8
 
 
 set pm3d map
-set pm3d corners2color c3
+set pm3d corners2color c4
 
 set palette defined (0 "white", 0.80 "black", 1 "red")
 
@@ -281,7 +281,7 @@ set ytics 32
 set mytics 8
 
 set pm3d map
-set pm3d corners2color c3
+set pm3d corners2color c4
 
 set palette defined (0 "white", 0.80 "black", 1 "red")
 
@@ -319,7 +319,7 @@ set ytics 32
 set mytics 8
 
 set pm3d map
-set pm3d corners2color c3
+set pm3d corners2color c4
 
 set palette defined (0 "white", 0.80 "black", 1 "red")
 #set palette defined (0 "green", 0.5 "white", 1 "red")
@@ -338,6 +338,8 @@ Finally, as the authors notice, it's not enough to notice a thin bias in four Si
 
 > To attempt to distinguish our fast proposal SipHash-2-4 by exploiting such statistical biases, one needs to find a bias on six rounds [...]
 
+
+[The code is available](https://github.com/majek/dump/blob/master/visualising-siphash/generate.c) in case you want to replicate the results.
 
 
 </%block>

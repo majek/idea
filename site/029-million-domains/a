@@ -1,0 +1,2 @@
+API's around DNS are known to be awful - starting with synchronous
+[gethostbyname(3)](http://linux.die.net/man/3/gethostbyname).

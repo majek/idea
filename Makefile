@@ -62,3 +62,6 @@ pngout:
 
 optimize: pngout
 	find out -name \*.png -exec ./pngout {} \;
+
+publish:
+	rsync -avpP out mrblue:idea	

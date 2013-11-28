@@ -230,7 +230,7 @@ harder to express the data flow control using callbacks[^2].
 
 Finally, please don't get me wrong. Although this rant is focused
 around node.js it's not limited to it. It's generally hard to think
-about end-to-end flow control in an callback based environments. It's
+about end-to-end flow control in callback based environments. It's
 impossible to design good callback based API's when you don't have
 tools to deal with data flow control.
 

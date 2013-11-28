@@ -7,6 +7,7 @@ import png
 defaults = {
     'size': '300x300',
     'data': '',
+    'xsize': '',
     }
 
 join_attr = lambda attr:' '.join( '%s="%s"' % (k,v) for k, v in attr)
@@ -34,8 +35,12 @@ def generate(content, dst_dir, leading):
     required_ext = ['.gnu', '.png', '.dat']
     if sum(os.path.isfile(outfile + ext) for ext in required_ext) < 3:
         do_generate(ctx, outfile, content)
+        if ctx['xsize']:
+            ctx['size'] = ctx['xsize']
+            do_generate(ctx, outfile + '-large', content)
     else:
         print ' [.] %r already present' % (outfile + '.gnu',)
+
 
     with open(outfile + '.png', 'r') as f:
         (width, height, _, _) = png.Reader(file=f).read()
@@ -48,8 +53,11 @@ def generate(content, dst_dir, leading):
         ('style', 'padding-bottom:%spx' % (leading - (height % leading),)),
         ]
 
-    return '''<div class="gnuimage"><img %s></div>''' % (
+    r = '''<div class="gnuimage"><img %s></div>''' % (
         join_attr(attr))
+    if ctx['xsize']:
+        r = '''<a href="%s-large.png">%s</a>'''% (ctx['file'], r)
+    return r
 
 
 def do_generate(ctx, outfile, content):

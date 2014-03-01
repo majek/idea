@@ -1,0 +1,97 @@
+I'm focusing on linked lists, but this discussion applies to any kind
+of generic containers.
+
+
+Let me explain. Suppose we have a record that contains two values:
+first name and a surname.
+
+<dot>
+digraph {
+        node [shape="record"];
+subgraph cluster_a{
+        aa [label="{{Alice|von Wonderland}}"];
+}
+}
+</dot>
+
+In the "external" list style, the records are referenced from the
+list:
+
+
+This is contrary to the "internal" style, where the data required for
+list bookkeeping is embedded within the item:
+
+
+
+This allows me to add
+
+<dot>
+digraph {
+        node [shape="record"];
+subgraph cluster_a{
+        aa [label="{{{{<1>*next|<2>*Value}}|Alice|von Wonderland}}"];
+}
+aa:2 -> aa:1
+}
+</dot>
+
+
+The difference is pretty subtle, here's the added code:
+
+What's important here is that we're recycling given "Element"
+object. Although pretty trivial, this feature is unavailable in the
+default `container/list` implementation.
+
+The main point is here that we're recycling `element`. Normally,
+`element` has to be allocated every time a record is added to a list.
+
+
+
+
+
+
+
+
+
+Here is the `runtime.NextGC` metric, measuring how many bytes must be
+allocated to trigger next GC run.
+
+<gnuplot>
+size: 600x550
+--
+set border 3;
+set xtics nomirror;
+set ytics nomirror;
+
+set boxwidth 0.5;
+set style fill solid;
+
+set xlabel "Input lines"
+set ylabel "NextGC"
+
+set xrange [0:2000];
+set yrange [660000:820000];
+
+delta_v1(x) = ( vD = x - old_v1, old_v1 = x, vD)
+old_v1 = NaN
+
+delta_v2(x) = ( vD = x - old_v2, old_v2 = x, vD)
+old_v2 = NaN
+
+inms(x) = ( x / 1000000000000000.0)
+
+
+unset surface;
+unset contour;
+set bars 3 front;
+
+<%
+#plot \
+#    "logi.tsv"  using 1:(delta_v1($8)) with lines title "interal", \
+#    "loge.tsv"  using 1:(delta_v2($8)) with lines title "external";
+%>
+
+plot \
+    "loge.tsv"  using 1:14 with dots title "external (red)",\
+    "logi.tsv"  using 1:14 with dots title "interal (green)";
+</gnuplot>

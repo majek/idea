@@ -1,0 +1,90 @@
+
+In bind you can specify exact port, but by specifying port 0, you're
+asking kernel to select a port for you. Interestingly it hits
+[completely different code in the kernel](https://github.com/torvalds/linux/blob/1bbdceef1e535add893bf71d7b7ab102e4eb69eb/net/ipv4/inet_connection_sock.c#L121). I
+won't paste it here, the code is rather brutal, here's my
+understanding how it works.
+
+The code depends on th settings of `SO_REUSEPORT` and
+`SO_REUSEADDR` flags.
+
+1. Reuseaddr=0 and Reuseport=0.
+
+The code is shockingly understandable for this case. We start from a
+random port in ephemeral range and increase it until we find unused
+port or passing a `bind_conflict` test.
+
+https://github.com/torvalds/linux/blob/1bbdceef1e535add893bf71d7b7ab102e4eb69eb/net/ipv4/inet_connection_sock.c#L63
+
+2. reuseaddr=0 and Reuseport=1
+
+
+[`SO_REUSEPORT`](https://lwn.net/Articles/542629/)
+
+
+3. reuseaddr=1 and reuseport=0
+
+
+4. reuseaddr=1 and ]reuseport=1
+
+Nobody knows
+
+
+
+
+
+Up to five times we traverse the whole ephemeral port range, each time
+starting from a radom port number. We're looking for a first port that
+matches `bind_conflict` criteria.
+
+
+ 1. We select a random port number the ephemeral port range.
+ 2. If the port is unused, great, we're done. Exit the loop.
+ 3. If the port is used by one or more sockets in the system, and all
+ the sockets were set using `bind`, and their `reuseport` or
+ `reuseaddr` setting match our socket settings, we save it in
+ `smallest_rover`. If number of bound sockets in the container exceeds
+ number of sockets from ephemeral range, we exit the loop.
+ 4. If the socket is 
+
+
+
+
+
+This is actually pretty good.
+
+
+
+By default on Linux you can only have 28232 outgong connections and
+time_waits at a time.
+
+But a TCP/IP connection is defined as a touple of four elements
+(source ip, source port, destination ip, destination port). That means
+you could have up to 65k connections from a single ip to a single
+desitnation. The global limit of 28k total count of outgoing
+connections is definitely way below infinity.
+
+bind before connect
+----
+
+BSD sockets API considers that and allows a work around. The trick is
+to call `bind()` before connect.
+
+This is not always desired. For example, `nginx` allows users to
+specify it's outgoing ip address via the
+[`proxy_bind` directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_bind).
+
+
+
+
+
+
+There are two possible settings:
+
+1. `SO_REUSEADDR=0`
+
+    This is the usual case, kernel tries to find a unique source port
+    that is not yet used on a system, at all. Even ports in TIME_WAIT
+    state will be ruled out. With this method and default ephemeral
+    port range only 28k outgoing connections can be established for a
+    single source IP.

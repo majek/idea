@@ -11,7 +11,7 @@ kernel counterpart the packet filter interface.
 
 For example, say you run:
 
-    $ tcpdump -ni eth0 udp and port 53
+    $ tcpdump -ni eth0 ip and udp and port 53
 
 For most of us this command is pure magic, almost nobody understands
 what happens behind the scenes. This is understandable, there is
@@ -53,13 +53,16 @@ Since then
 taken the world by a storm and along with `libpcap` and `tcpdump`
 become the de-facto standard in network debugging.
 
+Here's
+[the story told by Steven himself](http://www.youtube.com/watch?v=Cea5UXJHXSY).
+
 Tcpdump dissected
 -----------------
 
 Tcpdump is composed of three logical parts:
 
  - Expression parser: Tcpdump first parses a readable filter
-   expression like `udp and port 53`. The result is a short program in
+   expression like `ip and udp and port 53`. The result is a short program in
    a special minimal bytecode, the BPF bytecode.
 
  - The BPF bytecode (filter program) is attached to the network tap
@@ -76,27 +79,35 @@ Given a packet filtering expression, tcpdump produces a short program
 in the BPF bytecode. The easiest way to see the parser in action is to
 pass a `-d` flag, which will produce a readable assembly-like program:
 
-    $ sudo tcpdump -ni en0 -d "udp"
+    $ sudo tcpdump -p -ni eth0 -d "ip and udp"
     (000) ldh      [12]
-    (001) jeq      #0x86dd          jt 2	jf 7
-    (002) ldb      [20]
-    (003) jeq      #0x11            jt 10	jf 4
-    (004) jeq      #0x2c            jt 5	jf 11
-    (005) ldb      [54]
-    (006) jeq      #0x11            jt 10	jf 11
-    (007) jeq      #0x800           jt 8	jf 11
-    (008) ldb      [23]
-    (009) jeq      #0x11            jt 10	jf 11
-    (010) ret      #65535
-    (011) ret      #0
+    (001) jeq      #0x800           jt 2    jf 5
+    (002) ldb      [23]
+    (003) jeq      #0x11            jt 4    jf 5
+    (004) ret      #65535
+    (005) ret      #0
+
+This program reads like this:
+
+ - Load a half-word (2 bytes) from the packet at offset 12.
+ - Check if the value is 0x0800, otherwise fail. This checks for the
+   IP packet on top of
+   [an Ethernet frame](http://www.networksorcery.com/enp/protocol/ethernet.htm).
+ - Load byte from a packet at offset 23. That's the "protocol" field 9
+   bytes within
+   [an IP frame](http://www.networksorcery.com/enp/protocol/ip.htm).
+ - Check if the value is 0x11, which is the UDP protocol number,
+   otherwise fail.
+ - Return success. Packet is matching the rule.
 
 Here you can find
-[the documentation of the assembly syntax](https://www.kernel.org/doc/Documentation/networking/filter.txt).
+[the full documentation of the assembly syntax](https://www.kernel.org/doc/Documentation/networking/filter.txt).
+
 
 Less readable compiled bytecode is printed with `-ddd` option:
 
-    $ sudo tcpdump -ni en0 -ddd "udp"|tr "\n" ","
-    12,40 0 0 12,21 0 5 34525,48 0 0 20,21 6 0 17,21 0 6 44,48 0 0 54,21 3 4 17,21 0 3 2048,48 0 0 23,21 0 1 17,6 0 0 65535,6 0 0 0,
+    $ sudo tcpdump -p -ni eth0 -ddd "ip and udp"|tr "\n" ","
+    6,40 0 0 12,21 0 3 2048,48 0 0 23,21 0 1 17,6 0 0 65535,6 0 0 0,
 
 
 Kernel API
@@ -116,7 +127,7 @@ passed to that network tap file descriptor.
 
 All the gritty details are described in the
 [`Documentation/networking/filter.txt`](https://www.kernel.org/doc/Documentation/networking/filter.txt)
-file. For the best preformance one can use
+file. For the best performance one can use
 [a zero-copy `PACKET_MMAP` / `PACKET_RX_RING` interface](https://www.kernel.org/doc/Documentation/networking/packet_mmap.txt),
 though most people should probably stick to the
 [high level `libpcap` API](http://www.tcpdump.org/manpages/pcap.3pcap.html).
@@ -270,10 +281,10 @@ Or match all the subdomains of "example.com":
     ...
 
 These kind of rules are very useful, they allow us to pinpoint the
-malicious traffic and drop very early. Just in the last couple of
-weeks we dropped 870,213,889,941 packets with few BPF rules. We often
-see 41 billion packets dropped throughout a night due to a single well
-placed rule.
+malicious traffic and drop it early. Just in the last couple of weeks
+we dropped 870,213,889,941 packets with few BPF rules. Recently during
+a flood we saw 41 billion packets dropped throughout a night due to a
+single well placed rule.
 
 Summary
 ------
@@ -286,13 +297,10 @@ I'm sure we'll use more BPF filters in the future to shield ourselves
 from malicious traffic and to have more CPU to deal with legitimate
 requests.
 
-
 Does generating BPF assembly sound like fun?
 [We're hiring talented developers](http://www.cloudflare.com/join-our-team),
 including to our
 [elite office in London](http://blog.cloudflare.com/cloudflare-london-were-hiring).
-
-
 
 
 </%block>

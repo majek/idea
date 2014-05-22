@@ -5,9 +5,9 @@
 
 
 Every once in a while I run into an obscure computer technology that
-is a hidden gem, which over the years has become mostly forgotten. This is
-exactly how I feel about the `tcpdump` tool and its kernel counterpart
-the packet filter interface.
+is a hidden gem, which over the years has become mostly
+forgotten. This is exactly how I feel about the `tcpdump` tool and its
+kernel counterpart the packet filter interface.
 
 For example, say you run:
 
@@ -15,8 +15,8 @@ For example, say you run:
 
 For most of us this command is pure magic, almost nobody understands
 what happens behind the scenes. This is understandable, there is
-little need to know how it works: the tool does its job very well, it's
-descriptive and very fast.
+little need to know how it works: the tool does its job very well,
+it's descriptive and very fast.
 
 I'll try to explain how `tcpdump` works and how we use its spinoffs to
 help fight the packet floods that hit us every day.
@@ -26,19 +26,19 @@ But first, we need a bit of history.
 Historical context
 ------------------
 
-Since workstations became interconnected, network administrators had
-a need to "see" what is flowing on the wires. The ability to sniff the
-network traffic is neccesary when things go wrong, even for the most
+Since workstations became interconnected, network administrators had a
+need to "see" what is flowing on the wires. The ability to sniff the
+network traffic is necessary when things go wrong, even for the most
 basic debugging.
 
 For this reason operating systems developed APIs for packet
 sniffing. But, as there wasn't any real standard for it every OS had
-to invent a differnt API: Sun’s STREAMS NIT, DEC's Ultrix Packet
+to invent a different API: Sun’s STREAMS NIT, DEC's Ultrix Packet
 Filter, SGI’s Snoop and Xerox Alto had CMU/Stanford Packet
 Filter. This led to many complications. The simpler APIs just copied
 all the packets to the user space sniffer, which on a busy system
-resulted in a flood of useless work. The more complex APIs were able to
-filter packes before passing them to userspace, but it was often
+resulted in a flood of useless work. The more complex APIs were able
+to filter packets before passing them to userspace, but it was often
 cumbersome and slow.
 
 All this changed in 1993 when Steven McCanne and
@@ -49,8 +49,8 @@ they called it
 
 Since then
 [the BPF](https://en.wikipedia.org/wiki/Berkeley_Packet_Filter) has
-taken the world by a storm and along with `libpcap` and `tcpdump` become
-the de-facto standard in network debugging.
+taken the world by a storm and along with `libpcap` and `tcpdump`
+become the de-facto standard in network debugging.
 
 Tcpdump dissected
 -----------------
@@ -73,8 +73,7 @@ Expression parser
 
 Given a packet filtering expression, tcpdump produces a short program
 in the BPF bytecode. The easiest way to see the parser in action is to
-pass a `-d` flag, which will produce a readable assembly-like
-program:
+pass a `-d` flag, which will produce a readable assembly-like program:
 
     $ sudo tcpdump -ni en0 -d "udp"
     (000) ldh      [12]
@@ -129,9 +128,10 @@ not. Before executing the BPF bytecode kernel ensures that it's safe:
 - The single BPF program has less than 4096 instructions.
 
 All this guarantees that the BPF programs executed within kernel
-context will run fast and will never infinitely loop. That means the BPF
-programs are not turing complete, but in practice they are expressive
-enough for the job and deal with packet filtering very well.
+context will run fast and will never infinitely loop. That means the
+BPF programs are not Turing complete, but in practice they are
+expressive enough for the job and deal with packet filtering very
+well.
 
 The concepts underlying BPF were described in a 1993 paper and didn't
 change for many years. Recently there were a few significant changes
@@ -144,7 +144,7 @@ was introduced, and few months ago an attempt was made to upgrade the
 Not only tcpdump
 ----------------
 
-BPF is an absolutely marvellous and flexible way of filtering
+BPF is an absolutely marvelous and flexible way of filtering
 packets. For years it got reused in more places and now Linux uses BPF
 filters for:
 
@@ -162,14 +162,14 @@ filters for:
 How we use it
 -------------
 
-CloudFlare deals with massive packet floods on a daily basis. It's very
-important for us to be able to drop malicious traffic fast, long
+CloudFlare deals with massive packet floods on a daily basis. It's
+very important for us to be able to drop malicious traffic fast, long
 before it hits the application.
 
 Unfortunately matching before the application is not easy. Naive
-iptables filtering, for example just looking at the source IP,
-doesn't work as floods get more sophisticated. The iptables module
-closest to our needs is
+iptables filtering, for example just looking at the source IP, doesn't
+work as floods get more sophisticated. The iptables module closest to
+our needs is
 ["xt_u32"](http://www.stearns.org/doc/iptables-u32.current.html), but
 it's hard to understand and is somewhat limited. Though it's generally
 [pretty useful](https://github.com/smurfmonitor/dns-iptables-rules/blob/master/domain-blacklist.txt),
@@ -206,6 +206,9 @@ matches a DNS query for "www.example.com":
     lb_1:
         ret #0
 
+Here you can find
+[the documentation of the assembly syntax](https://www.kernel.org/doc/Documentation/networking/filter.txt).
+
 To compile it we use the tools from the
 [`tools/net`](https://github.com/torvalds/linux/tree/master/tools/net)
 directory:
@@ -225,11 +228,7 @@ the packet. The same could be achieved using "u32" or "string"
 modules. But "xt_bpf" gives us more flexibility. For example we can
 make the rule case insensitive:
 
-        ld #20
-        ldx 4*([0]&0xf)
-        add x
-        tax
-
+    ...
     lb_0:
         ; Match: 076578616d706c6503636f6d00 '\x07example\x03com\x00'
         ld [x + 0]
@@ -244,16 +243,11 @@ make the rule case insensitive:
         ldb [x + 12]
         jneq #0x00, lb_1
         ret #1
+    ...
 
-    lb_1:
-        ret #0
+Or match all the subdomains of "example.com":
 
-Or match all the subodmains of "example.com":
-
-        ld #20
-        ldx 4*([0]&0xf)
-        add x
-        tax
+     ...
     lb_0:
         ; Match: *
         ldb [x + 0]
@@ -270,21 +264,19 @@ Or match all the subodmains of "example.com":
         ldb [x + 12]
         jneq #0x00, lb_1
         ret #1
-    lb_1:
-        ret #0
-
+    ...
 
 These kind of rules are very useful, they allow us to pinpoint the
 malicious traffic and drop it before it affects the application. Just
-in the last couple of weeks we dropped 870,213,889,941 packets with BPF
-rules. We often see 41 billion packes dropped due to a single well
-placed rule througout a night.
+in the last couple of weeks we dropped 870,213,889,941 packets with
+BPF rules. We often see 41 billion packets dropped due to a single
+well placed rule throughout a night.
 
 Summary
 ------
 
 Just as intended by Steven McCanne and Van Jacobson, the BPF is still
-very useful and extremaly fast. Even without enabling the BPF JIT we
+very useful and extremely fast. Even without enabling the BPF JIT we
 don't see any performance hit of applying many BPF rules.
 
 I'm sure we'll use more BPF filters in the future to shield ourselves

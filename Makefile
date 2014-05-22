@@ -1,5 +1,7 @@
 PYTHON=PYTHONPATH=$(PWD) $(PWD)/venv/bin/python
 
+DEPS=gnuplot graphviz
+
 all: venv/.ok \
 	out \
 	out/index.html \

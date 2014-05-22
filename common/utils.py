@@ -12,7 +12,8 @@ def subdir_from_ctx(ctx, default='none'):
     sub_dir = ''
     if ctx.get('date', None):
         sub_dir += ctx['date'].strftime('%Y-%m-%d-')
-    title = ''.join( (c in special_chars and special_chars[c] or c) for c in ctx['title'].lower() )
+    subdir = ctx.get('subdir') or ctx['title']
+    title = ''.join( (c in special_chars and special_chars[c] or c) for c in subdir.lower() )
     title = ''.join( c for c in title if c in allowed )
     title = title.lstrip('-').rstrip('-')
     sub_dir += urllib.quote(title)

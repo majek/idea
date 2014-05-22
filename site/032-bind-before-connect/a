@@ -88,3 +88,19 @@ There are two possible settings:
     state will be ruled out. With this method and default ephemeral
     port range only 28k outgoing connections can be established for a
     single source IP.
+
+
+
+http://markmail.org/download.xqy?id=ruxtjfkuaulrigec&number=1
+https://github.com/torvalds/linux/commit/a9d8f9110d7e953c2f2b521087a4179677843c2a
+
+
+https://lkml.org/lkml/2012/3/27/318
+
+http://stackoverflow.com/questions/410616/increasing-the-maximum-number-of-tcp-ip-connections-in-linux
+
+https://rachelbythebay.com/w/2012/05/18/socko/
+http://domsch.com/linux/lpc2010/Scaling_techniques_for_servers_with_high_connection%20rates.pdf
+
+
+http://www.unixguide.net/network/socketfaq/4.11.shtml

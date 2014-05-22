@@ -18,8 +18,8 @@ what happens behind the scenes. This is understandable, there is
 little need to know how it works: the tool does its job very well,
 it's descriptive and very fast.
 
-I'll try to explain how `tcpdump` works and how we use its spinoffs to
-help fight the packet floods that hit us every day.
+In this article I'll try to explain how `tcpdump` works and how we use
+its spinoffs to help fight the packet floods that hit us every day.
 
 But first, we need a bit of history.
 
@@ -33,13 +33,14 @@ basic debugging.
 
 For this reason operating systems developed APIs for packet
 sniffing. But, as there wasn't any real standard for it every OS had
-to invent a different API: Sun’s STREAMS NIT, DEC's Ultrix Packet
-Filter, SGI’s Snoop and Xerox Alto had CMU/Stanford Packet
-Filter. This led to many complications. The simpler APIs just copied
-all the packets to the user space sniffer, which on a busy system
-resulted in a flood of useless work. The more complex APIs were able
-to filter packets before passing them to userspace, but it was often
-cumbersome and slow.
+to invent
+[a different API](http://www.cs.columbia.edu/~nahum/w6998/lectures/vpk-columbia-nsdi-pf.pdf):
+Sun’s STREAMS NIT, DEC's Ultrix Packet Filter, SGI’s Snoop and Xerox
+Alto had CMU/Stanford Packet Filter. This led to many
+complications. The simpler APIs just copied all the packets to the
+user space sniffer, which on a busy system resulted in a flood of
+useless work. The more complex APIs were able to filter packets before
+passing them to userspace, but it was often cumbersome and slow.
 
 All this changed in 1993 when Steven McCanne and
 [Van Jacobson](https://en.wikipedia.org/wiki/Van_Jacobson) published
@@ -89,6 +90,9 @@ pass a `-d` flag, which will produce a readable assembly-like program:
     (010) ret      #65535
     (011) ret      #0
 
+Here you can find
+[the documentation of the assembly syntax](https://www.kernel.org/doc/Documentation/networking/filter.txt).
+
 Less readable compiled bytecode is printed with `-ddd` option:
 
     $ sudo tcpdump -ni en0 -ddd "udp"|tr "\n" ","
@@ -112,15 +116,17 @@ passed to that network tap file descriptor.
 
 All the gritty details are described in the
 [`Documentation/networking/filter.txt`](https://www.kernel.org/doc/Documentation/networking/filter.txt)
-file, though most people should probably use a
+file. For the best preformance one can use
+[a zero-copy `PACKET_MMAP` / `PACKET_RX_RING` interface](https://www.kernel.org/doc/Documentation/networking/packet_mmap.txt),
+though most people should probably stick to the
 [high level `libpcap` API](http://www.tcpdump.org/manpages/pcap.3pcap.html).
 
 The BPF bytecode
 --------------------------
 
-In essence Tcpdump asks the kernel to execute a simple program for it,
-within the kernel context. This might sound risky, but it's actually
-not. Before executing the BPF bytecode kernel ensures that it's safe:
+In essence Tcpdump asks the kernel to execute a BPF program within the
+kernel context. This might sound risky, but actually isn't. Before
+executing the BPF bytecode kernel ensures that it's safe:
 
 - All the jumps are only forward, which guarantees that there aren't
   any loops in the BPF program. Therefore it must terminate.
@@ -133,12 +139,12 @@ BPF programs are not Turing complete, but in practice they are
 expressive enough for the job and deal with packet filtering very
 well.
 
-The concepts underlying BPF were described in a 1993 paper and didn't
-change for many years. Recently there were a few significant changes
-in the Linux Kernel BPF implementation. First a
+The original concepts underlying the BPF were described in a 1993 and
+didn't require updates for many years. The Linux implementation on the
+other hand is steadily evolving: recently a
 [new and shiny just-in-time BPF compiler](http://lwn.net/Articles/437981/)
-was introduced, and few months ago an attempt was made to upgrade the
-[BPF assembly to a 64-bit form](https://lwn.net/Articles/584377/).
+was introduced, and a few months ago an attempt was made to upgrade
+the [BPF assembly to a 64-bit form](https://lwn.net/Articles/584377/).
 
 
 Not only tcpdump
@@ -167,23 +173,23 @@ very important for us to be able to drop malicious traffic fast, long
 before it hits the application.
 
 Unfortunately matching before the application is not easy. Naive
-iptables filtering, for example just looking at the source IP, doesn't
+iptables filtering, for example looking just at the source IP, doesn't
 work as floods get more sophisticated. The iptables module closest to
 our needs is
 ["xt_u32"](http://www.stearns.org/doc/iptables-u32.current.html), but
-it's hard to understand and is somewhat limited. Though it's generally
+it's hard to understand and somewhat limited. Though it's generally
 [pretty useful](https://github.com/smurfmonitor/dns-iptables-rules/blob/master/domain-blacklist.txt),
-and to make it easier people write
+and to make it easier people wrote
 [rule generators](http://www.bortzmeyer.org/files/generate-netfilter-u32-dns-rule.py).
 
 But what works for us best is the "xp_bpf" iptables module by Willem
-de Bruijn. With it we can match an iptable rule based on a BPF
+de Bruijn. With it we can match an iptable rule based on any BPF
 expression.
 
 Unfortunately, our BPF bytecode became pretty complex and it can't be
-written as a usual tcpdump expression. Instead we rely on a custom
-crafted BPF bytecode, for example, this is an "xt_bpf" bytecode that
-matches a DNS query for "www.example.com":
+written as a usual tcpdump expression any more. Instead we rely on a
+custom crafted BPF bytecode, for example, this is an "xt_bpf" bytecode
+that matches a DNS query for "www.example.com":
 
 
         ld #20
@@ -206,9 +212,6 @@ matches a DNS query for "www.example.com":
     lb_1:
         ret #0
 
-Here you can find
-[the documentation of the assembly syntax](https://www.kernel.org/doc/Documentation/networking/filter.txt).
-
 To compile it we use the tools from the
 [`tools/net`](https://github.com/torvalds/linux/tree/master/tools/net)
 directory:
@@ -223,7 +226,7 @@ Finally you can apply the rule like so:
         -m bpf --bytecode "14,0 0 0 20,177 0 0 0,12 0 0 0,7 0 0 0,64 0 0 0,21 0 7 124090465,64 0 0 4,21 0 5 1836084325,64 0 0 8,21 0 3 56848237,80 0 0 12,21 0 1 0,6 0 0 1,6 0 0 0," \
         -j DROP
 
-This is a fairly simple rule just looking for a particular value in
+This is a fairly simple rule just looking for a particular bytes in
 the packet. The same could be achieved using "u32" or "string"
 modules. But "xt_bpf" gives us more flexibility. For example we can
 make the rule case insensitive:
@@ -267,20 +270,21 @@ Or match all the subdomains of "example.com":
     ...
 
 These kind of rules are very useful, they allow us to pinpoint the
-malicious traffic and drop it before it affects the application. Just
-in the last couple of weeks we dropped 870,213,889,941 packets with
-BPF rules. We often see 41 billion packets dropped due to a single
-well placed rule throughout a night.
+malicious traffic and drop very early. Just in the last couple of
+weeks we dropped 870,213,889,941 packets with few BPF rules. We often
+see 41 billion packets dropped throughout a night due to a single well
+placed rule.
 
 Summary
 ------
 
 Just as intended by Steven McCanne and Van Jacobson, the BPF is still
 very useful and extremely fast. Even without enabling the BPF JIT we
-don't see any performance hit of applying many BPF rules.
+don't see any performance hit of applying complex BPF rules.
 
 I'm sure we'll use more BPF filters in the future to shield ourselves
-from malicious traffic and saving CPU time for legitimate requests.
+from malicious traffic and to have more CPU to deal with legitimate
+requests.
 
 
 Does generating BPF assembly sound like fun?

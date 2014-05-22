@@ -94,6 +94,9 @@ complex logic.
 Opposite strategy is chosen by `p0f` - it tries to guess the offset of
 IPv4 or IPv6 headers if the data link type is unrecognized.
 
+Finally, here's the official tcpdump/libpcap documentation:
+
+ * [http://www.tcpdump.org/linktypes.html](http://www.tcpdump.org/linktypes.html)
 
 </%block>
 </article>

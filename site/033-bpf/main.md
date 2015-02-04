@@ -5,7 +5,7 @@
 
 -------------
 
-This article was originally published at the CloudFlare blog:
+This article was originally published on the CloudFlare blog:
 
  * [http://blog.cloudflare.com/bpf-the-forgotten-bytecode](http://blog.cloudflare.com/bpf-the-forgotten-bytecode)
 

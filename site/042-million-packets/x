@@ -1,0 +1,116 @@
+```
+receiver$ watch 'sudo ethtool -S eth2 |grep rx'
+     rx-0.rx_packets:     8.0/s
+     rx-1.rx_packets:     0.0/s
+     rx-2.rx_packets:     0.0/s
+     rx-3.rx_packets:     0.5/s
+     rx-4.rx_packets:  355.2k/s
+     rx-5.rx_packets:     0.0/s
+     rx-6.rx_packets:     0.0/s
+     rx-7.rx_packets:     0.5/s
+     rx-8.rx_packets:     0.0/s
+     rx-9.rx_packets:     0.0/s
+     rx-10.rx_packets:    0.0/s
+```
+
+This is caused by the way network
+cards are interacting with the kernel.
+
+  because we hit a design
+limitation first:
+
+##########
+
+but let's dig in. With `ethtool -S` we can see
+where the traffic goes:
+
+
+Looks like all the packets go to RX queue #4. On our setup IRQ on RX
+queue #4 is pinned to CPU #5. Pinning receive process to that core
+doesn't destroy the throughput but brings back the variability:
+
+```
+  0.425M pps  12.983MiB / 108.910Mb
+  0.139M pps   4.242MiB /  35.589Mb
+  0.332M pps  10.125MiB /  84.938Mb
+```
+
+
+The numbers on the receiving side didn't increase. Furthermore, if we
+try to spread the load on the receiving side across two threads:
+
+```.bash
+receiver$ taskset -c 1,2 ./udpreceiver1 0.0.0.0:4321 2
+  0.280M pps   8.550MiB /  71.720Mb
+  0.288M pps   8.801MiB /  73.825Mb
+```
+
+
+
+<div class="image"><img src="htop-onecpu.png"><div></div></div>
+
+<div class="image"><img src="htop-twocpu.png"><div></div></div>
+
+
+
+
+
+
+CloudFlare provides a CDN and DDoS protection service. The performance
+of our network is of our prime concern. To make sure we are doing
+wasting any resources we spent quite an effort to benchmark and
+optimize our network stack.
+
+While the task to fully understand the performance of network stack is
+enourmous. Instead, let's turn it around into a fun excersize. Let's
+focus on a specific, well defined part. How about:
+
+ - How to receive a millon packets?
+
+
+------
+
+Since our goal is to understand the basics of network... assumptions:
+ - We're talking about Linux, and Linux network stack.
+ - "Packets" are so much more insteresting than "bytes"!
+ - Since we care about packets, we'll experiment only with UDP.
+ - 
+
+One of the questions we 
+
+In this article I'd like to describe our recent journey 
+
+Recently I've been ex
+
+
+
+
+Over the years there have been many talks on network stack
+perfomance. From the good old 10k, via RJ 1 m connections, to c10m.
+
+In order to 
+Help you to understand linux network stack better.
+
+Hopefully, you could le
+
+
+https://greenhost.nl/2013/04/10/multi-queue-network-interfaces-with-smp-on-linux/
+
+https://lwn.net/Articles/289137/
+
+https://www.kernel.org/doc/Documentation/networking/scaling.txt
+
+
+https://www.coverfire.com/articles/queueing-in-the-linux-network-stack/
+
+
+http://vger.kernel.org/netconf2011_slides/bwh_netconf2011.pdf
+
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Performance_Tuning_Guide/network-rss.htmlx
+
+
+
+In our setup, a NIC using a single RX queue can only deliver around
+350k pps. This is indeed a hard limitation. The only way to receive
+more packets is to scale out the traffic across many RX queues.
+

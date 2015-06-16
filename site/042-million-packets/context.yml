@@ -1,0 +1,8 @@
+title: "How to receive a million packets"
+date:  2015-06-16
+disabled: true
+copied_files:
+ - htop-onecpu.png
+ - htop-twocpu.png
+ - port-uneven.png
+ - multiqueue.png

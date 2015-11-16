@@ -1,0 +1,9 @@
+title: "Kernel bypass"
+date:  2015-09-07
+disabled: false
+copied_files:
+ - dpdk-model.png
+ - efvi-model.png
+ - virt-model.png
+ - bypass.jpg
+ - hispeed.jpg

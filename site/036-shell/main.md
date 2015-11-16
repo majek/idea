@@ -174,3 +174,5 @@ https://developer.gnome.org/glib/2.37/glib-Shell-related-Utilities.html
 g_shell_parse_argvn
 
 http://blog.flowblok.id.au/2013-02/shell-startup-scripts.html
+
+http://www.dwheeler.com/essays/filenames-in-shell.html

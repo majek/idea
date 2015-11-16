@@ -3,8 +3,6 @@
 <%block filter="filters.markdown">
 
 
-How to receive a million packets?
-==============
 
 Last week during a casual conversation, I caught my colleague saying:
 "Linux network stack is slow! You can't expect it to do anything more
@@ -39,7 +37,7 @@ First, let us assume:
   boxes have a multi-queue 10G network card by Solarflare, with 11
   receive queues configured. More on that later.
 
-* The source code of the test programs is available here. TODO
+* The source code of the test programs is available: [`udpsender`](https://github.com/majek/dump/blob/master/how-to-receive-a-million-packets/udpsender.c), [`udpreceiver`](https://github.com/majek/dump/blob/master/how-to-receive-a-million-packets/udpreceiver1.c).
 
 
 Before we begin
@@ -179,8 +177,8 @@ delivered around 350k pps to RX queue number #4. The
 failed to deliver 450k pps to the kernel.
 
 Sometimes it's not obvious why the packets weren't delivered. In our
-case though, it's very clear: the RX queue #4 delivers packets to CPU
-#4. And CPU #4 can't do any more work - it's totally busy by just
+case though, it's very clear: the RX queue #4 delivers packets to
+CPU #4. And CPU #4 can't do any more work - it's totally busy by just
 reading the 350k pps. Here's how it looks in `htop`:
 
 <div class="image"><img src="htop-onecpu.png"><div></div></div>

@@ -10,4 +10,8 @@ Here are the slides from the talk:
 
   * [https://speakerdeck.com/majek04/building-an-automated-ddos-mitigation-pipeline](https://speakerdeck.com/majek04/building-an-automated-ddos-mitigation-pipeline)
 
+Video:
+
+  * [https://www.youtube.com/watch?v=XiK4643YdOk](https://www.youtube.com/watch?v=XiK4643YdOk)
+  
 </%block>

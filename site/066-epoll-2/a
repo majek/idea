@@ -1,0 +1,115 @@
+
+
+Did I mention that the semantics of `select() are not perfect?
+
+
+It shows how much time it takes to call `connect(127.0.0.1)` depending
+on how many worker processess hang on `accept`. Remember that there
+are no packet magical buffers on loopback, so all the kernel dispatch
+code is done in the CPU time of the sender.
+
+
+
+
+
+Select() limits functionality
+----------
+
+The second problem with `select()` comes down to the semantics exposed
+to programmer. You see, `select` should allow a programmer to
+multiplex sockets. It should be a building block for implementation of
+coroutines in the program.
+
+[I explained before](https://idea.popcount.org/2013-09-05-it-aint-about-the-callbacks/)
+why I'm a proponent of coroutine programming model. It encourages
+right attitude to flow control.
+
+Sadly, the semantics of `select` aren't exactly what's needed for a
+nice and clean implementation of multiplexed coroutines. `Select`
+allows you to wait for two bits of data - readability and
+writeability. A coroutine on the other hand is interested in read() or
+write() for given amount of bytes succeeded. Consider this:
+
+```.c
+// blocking read
+recv(buf, 4096, MSG_WAITALL)
+send(buf, 8192, MSG_WAITALL)
+```
+
+While in select model, at best the implementation would look like:
+
+```
+while (n < 4096)
+    n += read(buf+n, 4096-n)
+while (n < 8192)
+    n += write(buf+n, 8192-n)
+```
+
+As you can see, what a programer wants vs what a programmer gets is
+slightly different. Is that a big deal? Perhaps it is.
+
+
+
+
+
+
+
+
+
+
+
+
+
+  1.
+
+
+To start our 
+
+https://daniel.haxx.se/docs/poll-vs-select.html
+http://tinyclouds.org/iocp-links.html
+http://www.xmailserver.org/linux-patches/nio-improve.html
+
+https://coelhorjc.wordpress.com/2014/12/18/using-non-blocking-and-asynchronous-io-ck10-problem-in-linux-and-windows-with-epool-iocp-aiolibaio-libeventlibevlibuv-boost-asio/
+https://twitter.com/majek04/status/695497960851795968
+https://news.ycombinator.com/item?id=9696019
+
+!!! https://news.ycombinator.com/item?id=9750969
+
+
+Windows IPC http://cs.brown.edu/~scl/files/IPCWinNTUNIX.pdf
+
+44 freebsd https://www.freebsd.org/doc/en_US.ISO8859-1/books/design-44bsd/overview-io-system.html 
+
+poll on mac broken https://daniel.haxx.se/blog/2016/10/11/poll-on-mac-10-12-is-broken/
+https://people.eecs.berkeley.edu/~sangjin/2012/12/21/epoll-vs-kqueue.html
+
+https://lwn.net/Articles/14168/
+https://lwn.net/Articles/633422/
+
+
+<% a ='''
+
+epoll http://www.xmailserver.org/linux-patches/nio-improve.html
+IOCP www.tinyclouds.org/iocp-links.html
+moj komentarz: https://news.ycombinator.com/item?id=9750969
+IOCP http://int64.org/2009/05/13/high-performance-io-on-windows/
+
+kqueue
+http://www.eecs.berkeley.edu/~sangjin/2012/12/21/epoll-vs-kqueue.html
+http://www.tedunangst.com/kqueue.pdf
+
+
+costam
+https://coelhorjc.wordpress.com/2014/12/18/using-non-blocking-and-asynchronous-io-ck10-problem-in-linux-and-windows-with-epool-iocp-aiolibaio-libeventlibevlibuv-boost-asio/
+
+
+
+epoll man page http://man7.org/linux/man-pages/man7/epoll.7.html
+
+polecam edge-triggered chapter. o tym dlaczego to wazne jutro :)
+https://twitter.com/majek04/status/695497960851795968
+
+do tego
+https://twitter.com/majek04/status/698157300524003328
+
+''' %>

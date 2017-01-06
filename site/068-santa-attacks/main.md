@@ -1,0 +1,205 @@
+<%inherit file="basecomment.html"/>
+
+<%block filter="filters.markdown">
+
+
+A million junk requests
+----------
+
+Here at Cloudflare we extensivelly monitor our network. We use multiple systems that give us visibility, from external monitoring to internal alerts when thing go wrong. But the most useful system is ["Grafana"](We are big enthusiasts of) that allows us to quickly mock up arbitrary dashboards. And heavy user of Grafana we are: at last count we had 645 different grafana views configured in our system!
+
+```
+grafana=> select count(1) from dashboard;
+ count
+-------
+   645
+(1 row)
+```
+
+This post is not about our Grafana systems though. It's about something we noticed couple of days ago, while looking at one of our 645 Grafana views. We noticed this:
+
+<div class="image" style="height:364px"><img style="height:336px;"
+src="hedgehog.png"></div>
+
+<% a="""
+ https://grafana.cfdata.org/dashboard/db/attackdb-http-fp-attacks?from=1481535987043&to=1481757427380
+ """ %>
+
+This chart should show number of HTTP requests per second handled by our systems globally (pardon me stripping the units). You can clearly see multiple spikes, and this chart most definitely should not look like a hedgehog! The spikes were large in scale - 500k to 1M HTTP requests per second. Something strange was going on.
+
+
+Tracing the spikes
+----------------
+
+Our intuition indicated an attack - but our attack mitigation systems didn't confirm it. We've seen no major HTTP attacks at a time.
+
+It would be _bad_ if we were under such heavy HTTP attack and our mitigation systems didn't notice it. Without more ideas, we bailed back to our favorite debugging tools - `tcpdump`!
+
+The spikes happened every 80 minutes and lasted about 10. We waited, and tried to catch the offending traffic. Here is how the HTTP traffic looked like on the wire:
+
+<div class="image" style="height:364px"><img style="height:336px;"
+src="hwire.png"></div>
+
+The client had sent some binary junk to our HTTP server. Our server politely responded with 400 Nginx error page.
+
+The spikes in our global HTTP graphs were caused by someone sending us junk to HTTP port 80. This explains why it wasn't caught by the attack mitigation systems. Invalid HTTP requests don't trigger our HTTP DDoS mitigations - it makes no sense to mitigate traffic which is never accepted by Nginx in the first place!
+
+The payload
+-----------
+
+At first sight the payload sent to HTTP servers looks like junk, like [a weak PRNG](https://en.wikipedia.org/wiki/Pseudorandom_number_generator) output. A colleague of mine - [Chris Branch](https://twitter.com/chrisbranch) - investigated and proved me wrong. The payload was not random!
+
+Let me show what's happening. Here are the first 24 bytes of the mentioned payload:
+
+<div class="image" style="height:364px"><img style="height:336px;"
+src="hp1.png"></div>
+
+If you look closely, the pattern will start to emerge. Let's add some colors and draw it in not eight, but seven bytes per row:
+
+<div class="image" style="height:364px"><img style="height:336px;"
+src="hp2.png"></div>
+
+The payload is not random. It's an output of a simple 7-byte based incrementation algorithm, adding 1 to alternative bytes in a check-board like pattern. Interestingly often first and second bytes of the connections didn't follow the pattern.
+
+The length distribution of the requests is also interesting. Here's the histogram showing the popularity of particular lengths of payloads.
+
+<gnuplot>
+size: 600x550
+xsize: 1200x1100
+--
+set xtics rotate
+set border 3;
+set xtics nomirror;
+set ytics nomirror;
+set xtics 128;
+set key off
+#set timefmt '%Y-%m-%dT%H:%M'
+
+set ylabel "% of requests"
+set xlabel "Length in bytes"
+#set xdata time
+#set format x "%H-%M"
+
+#set xrange ["2016-04-15T08:00": "2016-04-17"]
+set xrange ["0": "2049"]
+#set yrange ["0":"400"]
+# set key off
+
+plot "length2.csv"  u 1:2 with lines
+</gnuplot>
+
+About 80% of the junk requests we received had length of up to 511 bytes, uniformly distributed.
+
+The remaining 20% had length uniformly distributed between 512 and 2047 bytes, with a few interesting spikes. For some reason lengths of 979, 1383 and 1428 bytes stand out, with number of requests than uniform distribution could suggest.
+
+
+The scale
+-------
+
+The spikes were large. Believe me, it takes a lot of firepower to generate a spike in our global HTTP statistics! On the first day the spikes reached about 600k junk requests per second. On second day the score went up to 1M rps. In total we recorded 37 spikes.
+
+<% a='''
+https://grafana.cfdata.org/dashboard/db/attackdb-http-attacks-junk-attack-temp-deleteme-in-2017?panelId=3&fullscreen
+''' %>
+
+<div class="image" style="height:364px"><img style="height:336px;"
+src="hattacks.png"></div>
+
+Geography
+---------
+
+Unlike L3 attacks, L7 attacks require TCP/IP connections to be fully established. That means the source IP addresses are not spoofed and can be used to investigate the geographic distribution of attacking hosts.
+
+The spikes were generated by IP addresses from all around the world. We recorded IP numbers from 4912 distinct Autonomous Systems. Here are top ASN numbers by number of unique attacking IP addresses:
+
+```.txt
+Percent of unique IP addresses seen:
+21.51% AS36947  # AS de Algerie Telecom, Algeria
+ 5.34% AS18881  # Telefnica Brasil S.A, Brasil
+ 3.60% AS7738   # Telemar Norte Leste S.A., Brasil
+ 3.48% AS27699  # Telefnica Brasil S.A, Brasil
+ 3.37% AS28573  # CLARO S.A., Brasil
+ 3.20% AS8167   # Brasil Telecom S/A, Brasil
+ 2.44% AS2609   # Tunisia BackBone, Tunisia
+ 2.22% AS6849   # PJSC "Ukrtelecom", Ukraine
+ 1.77% AS3320   # Deutsche Telekom AG, Germany
+ 1.73% AS12322  # Free SAS, France
+ 1.73% AS8452   # TE-AS, Egypt
+ 1.35% AS12880  # Information Technology Company, Iran
+ 1.30% AS37705  # TOPNET, Tunisia
+ 1.26% AS53006  # Algar Telecom S/A, Brasil
+ 1.22% AS36903  # ASN du reseaux MPLs de Maroc Telecom, Morocco
+ ... 4897 AS numbers below 1% of IP addresses.
+```
+
+You can get the picture - the trasffic was sourced all over the place, with heavy bias towards South America. Here is the country distribution of attacking IP's:
+
+```.txt
+Percent of unique IP addresses seen:
+31.76% BR
+21.76% DZ
+ 7.49% UA
+ 5.73% TN
+ 4.89% IR
+ 3.96% FR
+ 3.76% DE
+ 2.09% EG
+ 1.78% SK
+ 1.36% MA
+ 1.15% GB
+ 1.05% ES
+ ... 109 countries below 1% of IP addresses
+```
+
+The traffic was truly global launched with IP's from 121 countries. This kind of globally distributed attacks is where [Cloudflare Anycast](https://blog.cloudflare.com/how-cloudflares-architecture-allows-us-to-scale-to-stop-the-largest-attacks/) network shines. During these spikes the load was nicely distributed across dozens of datacenters. [Our datacenter in Sao Paulo](https://blog.cloudflare.com/parabens-brasil-cloudflares-27th-data-center-now-live/) absorbed the most traffic, roughly 4 times more traffic then second in line - Paris. In this chart showing how the traffic was distributed across many datacenters:
+
+<%
+# https://grafana.cfdata.org/dashboard/db/attackdb-http-attacks-junk-attack-temp-deleteme-in-2017?panelId=4&fullscreen&from=1481676517480&to=1481680837656
+%>
+
+
+<div class="image" style="height:364px"><img style="height:336px;"
+src="hcolos.png"></div>
+
+
+Unique IP's
+-----------
+
+During each of the spikes our systems recorded 200k unique source IP addresses sending us junk requests.
+
+Normally we would conclude here. Whoever generated the attack controlled roughly 200k bots, and that's it. But these spikes were different. It seems the bots rotated IP's aggressively. Here is an example: during these 16 spikes we recorded a total count of whopping of 1.2M unique IP addresses attacking Cloudflare.
+
+<%
+# https://grafana.cfdata.org/dashboard/db/attackdb-http-attacks-junk-attack-temp-deleteme-in-2017?panelId=3&fullscreen&from=1481535987043&to=1481757427380
+%>
+
+<div class="image" style="height:364px"><img style="height:336px;"
+src="hmillion.png"></div>
+
+This can be explained by bots churning IP addresses. We believe that out of the estimated 200k bots, between 50k and 100k bots changed their IP addresses during the 70 minutes between attacks. This resulted in 1.2M unique IP addresses during the 16 spikes happening over 24 hours.
+
+
+A botnet?
+------
+
+These spikes were very unusual for a number of reasons.
+
+  * They were generated by a large number of IP addresses. We estimate 200k concurrent bots.
+  * The bots are rotating IP addresses aggressively.
+  * It bots were from round the world with emphasis on South America.
+  * The traffic generated was enormous, reaching 1M junk TCP/IP connections per second.
+  * The spikes happened exactly every 80 minutes and lasted for 10 minutes.
+  * The payload of the traffic was junk, not a usual HTTP request attack.
+  * The payload had uniformly distributed payload sizes.
+
+It's hard to draw conclusions, but we can imagine two possible scenarios. It is possible these spikes were an attack intended to disable our HTTP servers. They had been generated by a large botnet.
+
+Second possibility is that these spikes were legitimate connection attempts by some weird, obfuscated protocol. For some reason the clients were connecting to port 80/TCP and retried precisely every 80 minutes.
+
+Neither scenarios explain the heavy churn of IP addresses.
+
+We are continuing our investigation. In the meantime we are looking for clues. Please do let us know if you encountered this kind of TCP/IP payload. We are truly puzzled by these large spikes.
+
+
+
+</%block>

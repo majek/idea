@@ -1,0 +1,23 @@
+probe begin {
+    printf("request ptr\tl_close\theader\tready\tbody_len\n");
+    printf("================================================\n");
+}
+
+// check lingering_close flags
+probe $1.statement("ngx_http_finalize_connection@src/http/ngx_http_request.c+49")
+{
+    printf("%p\t%i\t%i\t%i\t%i\n", $r, $r->lingering_close, $r->header_in->pos < $r->header_in->last, $r->connection->read->ready, $r->headers_in->content_length_n);
+}
+
+// discard body (uses lingering_timeout)
+probe $1.statement("ngx_http_finalize_connection@src/http/ngx_http_request.c+22")
+{
+    printf("%p\tdiscard_body for close\n", $r);
+}
+
+// discard body (uses lingering_timeout)
+probe $1.statement("ngx_http_set_keepalive@src/http/ngx_http_request.c+19")
+{
+    printf("%p\tdiscard_body for keepalive\n", $r);
+}
+

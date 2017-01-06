@@ -1,0 +1,317 @@
+
+
+When we ask the first step would be to ask the "." or
+"root" name servers. Every resolver has a hardcoded list of 13 root
+servers. How this list came about is irrelevant, for simplicity we can
+assume our resolver chose "198.41.0.4" as the main DNS anchor point.
+
+With the root name server IP address in one hand - "198.41.0.4", and
+the query in other: cloudflare.net", the resolver can begin
+work. It will ask the root server for data. We can simulate this query
+by running this `dig` command:
+
+```
+$ dig @198.41.0.4 cloudflare.net
+[simplified answer]
+;; QUESTION SECTION:
+;cloudflare.net.            IN      A
+
+;; AUTHORITY SECTION:
+net.                    172800  IN      NS      a.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.     172800  IN      A       192.5.6.30
+a.gtld-servers.net.     172800  IN      AAAA    2001:503:a83e::2:30
+```
+
+The answer above contains two bits of data. First the root server
+answers in AUTHORITY SECTION, with full confidence: I don't know where
+your `cloudflare.net` is, but I do know where is `.net` is. `.net`
+is handled by `a.gtld-servers.net`. Ask him instead! This is called a
+delegation.
+
+With this information, the resolver might stop. Scratch its head and
+think: okay, in order to resolve `cloudflare.net` I first need to
+resolve `a.gtld-servers.net`! This is absolutely true, but consider
+what would happen in such case. The resolver will again, choose a root
+server and query it, this time for `a.gtld-servers.net`, and the root
+server will give identical answer: I don't know where
+`a.gtld-servers.net` is, but I know where `.net` is! It's handled of course by `a.gtld-servers.net`!
+
+
+
+ records. In first stage of the exeriment we added a new
+IP address to ns6 and ns7. We didn't add these IP's to glue - we
+wanted to understand how often, in our case the glue is just ignored.
+
+Take this chart with a grain of salt. Cloudflare's setup is pretty
+complex and for domains of our customers not using .org/.com/.net,
+glue will just be ignored. In any case, here is how our resolution looked
+at that time:
+
+```
+```
+
+
+
+
+This zone is served by five nameservers ns3, ns4, ns5,
+ns6, ns7.cloudflare.com. Don't ask me what happened to ns1 and ns2.
+First, let's describe the starting condition. This is how the
+record and glue looked when queried:
+
+```
+$ dig cloudflare.com @192.5.6.30
+
+;; ADDITIONAL SECTION:
+ns3.cloudflare.com.     172800  IN      A       162.159.0.33
+ns5.cloudflare.com.     172800  IN      A       162.159.2.9
+ns4.cloudflare.com.     172800  IN      A       162.159.1.33
+ns6.cloudflare.com.     172800  IN      A       162.159.3.11
+ns7.cloudflare.com.     172800  IN      A       162.159.4.8
+```
+
+This is the chart of DNS traffic to each of these nameserver IP's:
+
+<gnuplot>
+size: 500x350
+--
+set datafile separator ","
+
+set xtics rotate
+set border 3;
+set xtics nomirror;
+set ytics nomirror;
+
+set timefmt '%Y-%m-%dT%H:%M'
+
+set ylabel "queries per second"
+set xdata time
+set format x "%H-%M"
+
+set xrange ["2016-04-25": "2016-04-28"]
+set yrange ["0":"400"]
+# set key off
+
+plot \
+  "first.csv" using 1:2 with lines title "ns3", \
+  "first.csv" using 1:3 with lines title "ns4", \
+  "first.csv" using 1:4 with lines title "ns5", \
+  "first.csv" using 1:5 with lines title "ns6", \
+  "first.csv" using 1:6 with lines title "ns7"
+</gnuplot>
+
+On Y axis we have queries per second we receive, on X axis we see
+three days worth of traffic. As you can see each server received
+smilar traffic volume. This is expected, since resolvers choose the
+nameservers are chosen at random.
+
+Also, beware that the units are actually artificial. We obfuscated the
+Y axis by multiplying the values by an arbitrary constant factor. Sorry.
+
+
+Stage 1. Adding non-glued records
+---------------------------------
+
+In first stage of experiment we tested how much trafic goes to a
+non-glued IP's. We added one IPv4 address to ns7.cloudflare.com, but
+_did not add_ relevant glue record. This is the console view. Directly
+asking our auth:
+
+```
+$ dig ns7.cloudflare.com @ns3.cloudflare.com
+;; ANSWER SECTION:
+ns7.cloudflare.com.     900     IN      A       162.159.4.8
+ns7.cloudflare.com.     900     IN      A       162.159.6.6
+```
+
+Notice that `162.159.6.6` is missing from glue. Let's call this address "ns7-bis":
+
+```
+$ dig ns7.cloudflare.com @a.gtld-servers.net
+;; ADDITIONAL SECTION:
+[...]
+ns7.cloudflare.com.     172800  IN      A       162.159.4.8
+```
+
+Here are the traffic levels post "ns7-bis" addition. I kept only
+"ns3", "ns7" and "ns7-bis" charts for brevity.
+
+
+<gnuplot>
+size: 500x350
+--
+set datafile separator ","
+
+set xtics rotate
+set border 3;
+set xtics nomirror;
+set ytics nomirror;
+
+set timefmt '%Y-%m-%dT%H:%M'
+
+set ylabel "queries per second"
+set xdata time
+set format x "%H-%M"
+
+set xrange ["2016-05-01": "2016-05-04"]
+set yrange ["0":"400"]
+# set key off
+
+plot \
+  "first.csv" using 1:2 with lines title "ns3", \
+  "first.csv" using 1:6 with lines title "ns7", \
+  "first.csv" using 1:8 with lines title "ns7-bis"
+</gnuplot>
+
+There is no visible distinction in traffic going to glued ns6 and ns7
+IP's. One might assume that additional non-glued IP will "steal"
+traffic from glued one. This is not the case. The traffic was
+"stealed" from all of the nameserver IP's equally.
+
+Secondly, we see that the non-glued ns6 traffic level is about 1/4th
+of the glued IP's. This is expected, since not all Cloudflare
+customers are on ".com", ".org" and ".net" TLD's. Only these customer
+domains with these suffixes will result in effective TLD glue use.
+
+Adding glue
+----------
+
+Next step of the experiemnt was the most important. How much time 
+The obvious next step is - what if we add the glue? Here's the chart:
+
+
+
+Removing glue
+-------------
+
+Our investigation wouldn't be completed before we showed the opposite
+situation - removing glue addresses. Here is it. In this case we
+removed the remaining glue record from ns6:
+
+<gnuplot>
+size: 1000x350
+--
+set datafile separator ","
+
+set xtics rotate
+set xtics 7200;
+set border 3;
+set xtics nomirror;
+set ytics nomirror;
+
+set timefmt '%Y-%m-%dT%H:%M'
+
+set ylabel "queries per second"
+set xdata time
+set format x "%m-%d %H-%M"
+
+set xrange ["2016-05-4": "2016-05-6"]
+set yrange ["0":"400"]
+# set key off
+
+plot \
+  "first.csv" using 1:2 with lines title "ns3", \
+  "first.csv" using 1:5 with lines title "ns6", \
+  "first.csv" using 1:8 with lines title "ns7-bis"
+</gnuplot>
+
+As you can see, the traffic drops sharply after the glue is removed
+from ns6. But even after this, the trafic going to this nameserver is
+slightly larger than non-glued traffic.
+
+
+<gnuplot>
+size: 1500x350
+--
+set datafile separator ","
+
+set xtics rotate
+set border 3;
+set xtics nomirror;
+set ytics nomirror;
+
+set timefmt '%Y-%m-%dT%H:%M'
+
+set ylabel "queries per second"
+set xdata time
+set format x "%H-%M"
+
+#set xrange ["2016-05-4": "2016-05-6"]
+set yrange ["0":"400"]
+# set key off
+
+plot \
+  "first.csv" using 1:2 with lines title "ns3", \
+  "first.csv" using 1:3 with lines title "ns4", \
+  "first.csv" using 1:4 with lines title "ns5", \
+  "first.csv" using 1:5 with lines title "ns6", \
+  "first.csv" using 1:6 with lines title "ns7", \
+  "first.csv" using 1:7 with lines title "ns6-bis", \
+  "first.csv" using 1:8 with lines title "ns7-bis"
+</gnuplot>
+
+
+<gnuplot>
+size: 1500x350
+--
+set datafile separator ","
+
+set xtics rotate
+set border 3;
+set xtics nomirror;
+set ytics nomirror;
+
+set timefmt '%Y-%m-%dT%H:%M'
+
+set ylabel "queries per second"
+set xdata time
+set format x "%H-%M"
+
+#set xrange ["2016-05-4": "2016-05-6"]
+set yrange ["0":"400"]
+# set key off
+
+plot \
+  "second.csv" using 1:2 with lines title "ns3", \
+  "second.csv" using 1:3 with lines title "ns4", \
+  "second.csv" using 1:4 with lines title "ns5", \
+  "second.csv" using 1:5 with lines title "ns6", \
+  "second.csv" using 1:6 with lines title "ns7", \
+  "second.csv" using 1:7 with lines title "ns6-bis", \
+  "second.csv" using 1:8 with lines title "ns7-bis"
+</gnuplot>
+
+
+
+<gnuplot>
+size: 1500x350
+--
+set datafile separator ","
+
+set xtics rotate
+set border 3;
+set xtics nomirror;
+set ytics nomirror;
+
+set timefmt '%Y-%m-%dT%H:%M'
+
+set ylabel "queries per second"
+set xdata time
+set format x "%H-%M"
+
+#set xrange ["2016-05-4": "2016-05-6"]
+set yrange ["0":"400"]
+# set key off
+
+plot \
+  "third.csv" using 1:2 with lines title "ns3", \
+  "third.csv" using 1:3 with lines title "ns4", \
+  "third.csv" using 1:4 with lines title "ns5", \
+  "third.csv" using 1:5 with lines title "ns6", \
+  "third.csv" using 1:6 with lines title "ns7", \
+  "third.csv" using 1:7 with lines title "ns6-bis", \
+  "third.csv" using 1:8 with lines title "ns7-bis"
+</gnuplot>
+
+

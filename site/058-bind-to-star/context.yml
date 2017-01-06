@@ -1,0 +1,13 @@
+title: "The revenge of the listening sockets"
+date:  2016-04-05
+disabled: false
+
+copied_files:
+ - ping-before.png
+ - ping-router.png
+ - ping-after.png
+ - design.png
+ - stp_net_rx_action.png
+ - stp_tcp_v4_rcv.png
+ - stp_inet_lookup_listener.png
+ - stp_inet_lookup_listener_det.png

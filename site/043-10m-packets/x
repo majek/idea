@@ -1,0 +1,414 @@
+How to receive 10 million packets per second
+===================
+
+In
+[the previous article](https://blog.cloudflare.com/how-to-receive-a-million-packets/)
+we discussed what needed to be tweaked on Linux network stack in order
+to receive one million UDP packets per second in the userspace
+application.
+
+In this article we'll continue our journay, this time to receive 10
+million packets.
+
+
+Indirection table
+--------------
+
+As mentioned previously, the receive queue is chosen based on a hash
+of a packet. This feature is called RSS (request side scaling). But
+when I explained it I lied a bit. The queue number is not taken
+directly from a hash. Instead, one more layer of abstraction exists
+and it's called an indirection (sometimes: redirection) table.
+
+On intel 10G nic you will need a patched driver to get the support:
+
+```.bash
+receiver$ ethtool -x eth3
+```
+
+Why do we need to know about the indirection table you may ask? Well,
+it allows us to do some cool tricks. Most importantly it allows us to
+remove normal traffic from a specific queue. For example, to remove
+all traffic from RX queue zero:
+
+```
+receiver$ ethtool -X eth3 weight....
+```
+
+Flow steering
+--------------
+
+With the RX queue freed from usual traffic, we can use another NIC
+feature to forward a specified flow there. For example, to get all the
+incoming SSH connections to RX queue #0 you could use:
+
+```.bash
+receiver$ ethtool -n ... action 0
+```
+
+In practice this technique is used pretty often when configuring
+servers - that way even if you have an [irq storm]() caused by a DDoS,
+which kills your machine, the SSH connections are guaranteed to go to
+dedicated CPU and allow you to login ...
+
+
+Bypass a single queue
+-------
+
+Since we can forward specific traffic to a dedicated RX queue, it
+would make sense to do kernel bypass only for that traffic, for that
+queue.
+
+<image>
+
+With that design we can have a normal NIC running, using normal
+drivers by default. Only when we need, for specific applications we
+could opt-in for a kernel bypass for selected traffic.
+
+
+Bypass on Intel 82599 / ixgbe with netmap
+-----------
+
+Using a range of ugly hacks it is possible to get comparable
+functionality on Intel 10G 82599 network cards. It ain't ugly but at
+least it's feasible.
+
+1. Patch ixgbe driver to get indirection table support and remove
+queue zero from RSS:
+
+```.bash
+receiver$ ethtool -i eth3
+receiver$ ethtool -X
+```
+
+2. Patch ixgbe driver to use netmap, patch netmap to run only on RX
+queue #0.
+
+https://github.com/fastly/linux/commit/76b88a7d4f176966cad52087c7750ab5af1771e4
+
+3. 
+
+
+4. Open netmap:
+
+```.bash
+receiver$ udpreceiver_netmap
+```
+
+
+Bypass on Solarflare
+-----------------
+
+The magical kernel bypass solarflare drivers provide work exactly in
+that way. The only difference is that the indirection magic and flow
+steering rules are created automatically by the driver. All the
+programmer needs to do is to use the API.
+
+There are two actually. One, the easier to use is a magical library
+called 'openonload' that overrides socket calls like `recv`, `send` or
+`bind` with accelerated versions. Usage is pretty trivial:
+
+```.bash
+receiver$ sudo onload ...
+```
+
+Under the hood it works exactly as I explained - the userspace program
+gets direct access to dedicated RX queue. This queue in turn gets some
+traffic by flow-steering like rules autmatically managed by openoload
+stack.
+
+While this may be sufficient to many, I personally don't like this
+magical approach. In my applications I prefer to control all the
+variables and remove all magic. That's why I perfer to use the lower
+lever API provided by solarflare called `efvi`. This is what
+openonload is build on.
+
+```.bash
+receiver$ udpreceiver_efvi
+```
+
+
+
+While I haven't shown 
+
+
+
+
+Thanks to Pavel Odintsov for doing the initial netmap ixgbe single RX
+queue code. Take a look at
+[Pavel's fastnetmon](https://github.com/FastVPSEestiOu/fastnetmon)
+project, which uses many of the bypass techniques. Fingers crossed to
+`netmap` team to actually support this pattern officially.
+
+
+
+
+TODO:
+1) Send 12m from sfc (snabb or oo tests)
+2) Patch ixgbe with 64 RSS, indirection, netmap, hacked netmap
+
+
+
+Flow steering
+---------
+
+We can get further, and steer the packes
+
+```.bash
+client$ sudo ethtool -N eth2 flow-type udp4 dst-ip 192.168.254.1 dst-port 65500 action 1
+Added rule with ID 12401
+server$ sudo ethtool -N eth3 flow-type udp4 dst-ip 192.168.254.30 dst-port 4321 action 1
+Added rule with ID 2045
+```
+
+But for some reason that actually degrades the latency a bit:
+
+```
+pps= 14537 avg= 65.953us dev= 45.724us min=44.626us
+pps= 17051 avg= 56.458us dev= 23.309us min=44.621us
+pps= 15938 avg= 60.238us dev= 28.151us min=44.903us
+```
+
+On the other hand if we pinned our processes to CPU 2:
+```
+pps= 17516 avg= 54.989us dev= 19.521us min=39.695us
+pps= 20168 avg= 47.775us dev= 18.145us min=39.594us
+pps= 17603 avg= 54.795us dev= 22.640us min=39.217us
+pps= 19370 avg= 49.664us dev= 19.945us min=40.013us
+```
+
+It recovers, and the 
+
+But quick look at 
+
+client$ mmwatch 'cat /proc/interrupts|tr -s " " "\t"|cut -f 1-13,26-|egrep "eth2|CPU"'
+
+
+explain indir table
+set it to numa #1
+
+flow steering
+--
+
+Use flow steering to make sure.
+
+
+
+but why transmissions are on weird cores
+
+
+
+
+
+
+Comment on tcp
+
+
+In
+[the previous article](https://blog.cloudflare.com/how-to-receive-a-million-packets/)
+we discussed what needed to be tweaked on Linux network stack in order
+to receive one million UDP packets per second in the userspace
+application.
+
+In this article we'll continue our journay, going even deeper into the
+details of how Linux interacts with multiqueue network cards.
+
+
+Indirection table
+-----------
+
+As previously described, hardware RSS allows the NIC to spread load
+across multiple CPU's. On every packet the NIC must decide to which RX
+queue to push a packet. To maintain the each flow is:
+  NIC will hash (src IP, dst IP) addresses. Ie:
+
+
+```.bash
+RX_queue_number = RXFH[hash(src IP, dst IP, protocol, src port, dst port) % 128]
+```
+
+Where RXFH is an indirection table pointing to RX queue number and
+indexed by seven least significant bits of counted hash. You can print
+it with `ethtool -x`:
+
+
+```.bash
+receiver$ sudo ethtool -x eth2
+RX flow hash indirection table for eth2 with 11 RX ring(s):
+    0:      0     1     2     3     4     5     6     7
+    8:      8     9    10     0     1     2     3     4
+   16:      5     6     7     8     9    10     0     1
+   24:      2     3     4     5     6     7     8     9
+   32:     10     0     1     2     3     4     5     6
+   40:      7     8     9    10     0     1     2     3
+   48:      4     5     6     7     8     9    10     0
+   56:      1     2     3     4     5     6     7     8
+   64:      9    10     0     1     2     3     4     5
+   72:      6     7     8     9    10     0     1     2
+   80:      3     4     5     6     7     8     9    10
+   88:      0     1     2     3     4     5     6     7
+   96:      8     9    10     0     1     2     3     4
+  104:      5     6     7     8     9    10     0     1
+  112:      2     3     4     5     6     7     8     9
+  120:     10     0     1     2     3     4     5     6
+```
+
+
+We can manipulate it. For example, let's free RX queue #0 from any
+incoming packets:
+
+```.bash
+receiver$ sudo ethtool -X eth2 weight 0 1 1 1 1 1 1 1 1 1 1
+receiver$ sudo ethtool -x eth2
+RX flow hash indirection table for eth2 with 11 RX ring(s):
+    0:      1     1     1     1     1     1     1     1
+    8:      1     1     1     1     2     2     2     2
+   16:      2     2     2     2     2     2     2     2
+   24:      2     3     3     3     3     3     3     3
+   32:      3     3     3     3     3     3     4     4
+   40:      4     4     4     4     4     4     4     4
+   48:      4     4     4     5     5     5     5     5
+   56:      5     5     5     5     5     5     5     5
+   64:      6     6     6     6     6     6     6     6
+   72:      6     6     6     6     7     7     7     7
+   80:      7     7     7     7     7     7     7     7
+   88:      7     8     8     8     8     8     8     8
+   96:      8     8     8     8     8     8     9     9
+  104:      9     9     9     9     9     9     9     9
+  112:      9     9     9    10    10    10    10    10
+  120:     10    10    10    10    10    10    10    10
+```
+
+As you see the table now is filled slightly different, but that
+doesn't matter. What matters RX queue #0 will not get any traffic.
+
+NOTE ON INTEL IXGBE INDIRECTION TABLE SUPPORT
+
+
+Note on interupts: RSS only makes sense if you pin RX queues to
+specific CPUs. Irqbalance is your enemy..
+
+Flow steering
+---------
+
+With the RX queue freed from usual traffic, we can use another NIC
+feature to forward a specified flow there. For example, to get all the
+incoming SSH connections to RX queue #0 you could use:
+
+```.bash
+receiver$ ethtool -n ... action 0
+```
+
+In practice this technique is used pretty often when configuring
+servers - that way even if you have an [irq storm]() caused by a DDoS,
+which kills your machine, the SSH connections are guaranteed to go to
+dedicated CPU and allow you to login ...
+
+
+You can also use this to DROP traffic on NIC before it even hits
+iptables:
+
+```.bash
+receiver$ ethtool -n ... action -1
+```
+
+More on locality
+----------
+
+When using flow steering you can manually select a destination RX
+queue and therefore CPU. Applying that to our previous example.
+
+
+Of course, doing manual flow steering eradicates all the benefit of
+horizontal scaling across cores with hardware RSS.
+
+
+For UDP it may make sense, by setting and pinning (although overflow).
+
+NIC --> RX queue --> receive buffer
+
+But for TCP it rarely makes sense since the process which accepts()
+the connection is either random (without REUSEPORT) or
+
+
+accept() locality with reuseport
+----------
+
+https://github.com/fastly/linux/commit/12440083de0b9272b6bcd7e0e9e82a3335314892
+
+
+
+accept() locality with iptables
+--------
+
+
+
+
+More on locality, TCP
+----------
+
+
+
+
+- One queue pair (RX / TX) per CPU (ignoring HT)
+- XFS
+
+
+
+
+Chce pokazac:
+ - pinning to the same core as RSS reduces latency
+   - but reduces capacity since we need to do two things on one core
+ - doing thing on another core increases latency
+   - unless flow director or RPS
+ - XFS reduces latency
+ - maybe interrupts
+ 
+
+https://wiki.freebsd.org/201305DevSummit/NetworkReceivePerformance/ComparingMutiqueueSupportLinuxvsFreeBSD
+
+https://lwn.net/Articles/381955/
+https://lwn.net/Articles/382428/
+
+https://lwn.net/Articles/382933/
+https://lwn.net/Articles/382933/
+
+http://downloadmirror.intel.com/22919/eng/README.txt
+
+http://thread.gmane.org/gmane.linux.kernel/1065484
+
+https://lwn.net/Articles/406489/
+
+
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Performance_Tuning_Guide/s-network-packet-reception.html
+
+
+
+
+AF_PACKET https://patchwork.ozlabs.org/patch/396713/
+
+
+redirect hack:
+http://moutane.net/RMLL2014/day_1-1400-Jesper_Brouer-DDoS_protection_using_Netfilter_iptables.pdf
+
+
+SO_INCOMING_CPU http://thread.gmane.org/gmane.linux.network/337836
+
+
+
+http://www.ieee802.org/3/ad_hoc/bwa/public/jul11/brown_01a_0711.pdf
+
+https://access.redhat.com/sites/default/files/attachments/2012_perf_brief-low_latency_tuning_for_rhel6_0.pdf
+
+
+
+afring:
+   https://patchwork.ozlabs.org/patch/396713/
+
+keyword: PACKET_RXTX_QPAIRS_SPLIT
+
+http://www.leidinger.net/FreeBSD/dox/dev_netmap/html/de/dfc/netmap_8c_source.html
+https://doxygen.openinfosecfoundation.org/source-netmap_8c_source.html
+
+
+https://domsch.com/linux/lpc2010/Scaling_techniques_for_servers_with_high_connection%20rates.pdf

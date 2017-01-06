@@ -50,17 +50,15 @@ Ok, let's start up, let me explain why DDoS attacks are a problem.
 But why should I know anything about that?
 
 Allow me introduce myself. My name is Marek and I'm an engineer at a
-performance and security company called CloudFlare.
+performance and security company called Cloudflare.
 
-At CloudFlare we operate a service - a globally distributed reverse proxy.
+At Cloudflare we operate a service - a globally distributed reverse proxy.
 
 We run servers all around the world. At last count we were present in
 86 locations [^hund]. We see a big chunk of traffic crossing the
 internet.
 
-[^hund]: This is outdated! Now [Cloudflare has 100 points of presence](https://blog.cloudflare.com/amsterdam-to-zhuzhou-cloudflare-global-network/).
-
-<hr><div class="image" style="height:364px"><img style="height:336px;" src="strange-loop3-iwi-09-09.004.jpg"></div>
+[^hund]: This is outdated! Now [Cloudflare has 100 points of presence](https://blog.Cloudflare.com/amsterdam-to-zhuzhou-Cloudflare-global-network/).
 
 We have plenty of customers from many different countries and from all
 industries: from dating portals through social media sites to
@@ -773,14 +771,19 @@ collector is as simple as "apt-get install". Netflow scales up well,
 it can support truly big networks.
 
 Proposing more logging may sound icky from the privacy point
-of view. This is a valid concern, but there are two caveats.
+of view. This is a valid concern, but there are three caveats.
 
-First, netflow allows to customize a high sampling rate. I could be
+First, netflow allows to customize a sampling rate. I could be
 set to the maximum value of only one per 64000 connections
 tracked. This sampling rate is absolutely sufficient for the large
 DDoS reporting. The big attacks will be still clearly visible.
 
-Secondly, there is no need to keep old logs available. For the DDoS
+Secondly, netflow doesn't look into packet contents. Netflow enabled
+routers report only the basic metadata of sampled connections, stats
+like: IP addresses, interface numbers and bandwidth counters. These
+numbers aren't very exciting in raw format, without aggregating.
+
+Lastly, there is no need to keep old logs available. For the DDoS
 reporting, the logs could be rolled every coupe of days. We really
 care only about recent events.
 

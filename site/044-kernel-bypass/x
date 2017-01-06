@@ -1,0 +1,105 @@
+Note on zero copy
+----
+
+Different flavour.
+
+1) one copy, to userspace buffers (PACKET_MMAP)
+2) directly mapping hardware buffers onto user readable memory, but the question is who owns. The lifetime.
+3) The userspace gives memory, which is filled by NIC and returned to userspace. Userspace is the true owner of memory.
+
+
+
+
+
+
+
+
+
+
+ For completness, let's see what happens if we
+allowed the packets to go up to INPUT iptables chain. The experiment
+using single RX queue
+
+```.bash
+receiver$ sudo iptables -t raw -I PREROUTING -p udp --dport 4321 --dst 192.168.254.1 -j NOTRACK
+receiver$ sudo iptables -t raw -I PREROUTING -p udp --dport 4321 --dst 192.168.254.1 -j ACCEPT
+receiver$ sudo iptables -I INPUT -p udp --dport 4321 --dst 192.168.254.1 -j DROP
+receiver$ sudo ethtool -X eth2 weight 1
+receiver$ watch 'ethtool -S eth2|grep rx'
+     rx_packets:        12.2m/s
+     rx-0.rx_packets:    701.2k/s
+```
+
+And using four RX queues:
+
+```.bash
+receiver$ sudo ethtool -X eth2 weight 1 1 1 1
+receiver$ watch 'ethtool -S eth2|grep rx'
+     rx_packets:     12.1m/s
+     rx-0.rx_packets: 477.8k/s
+     rx-1.rx_packets: 447.5k/s
+     rx-2.rx_packets: 482.6k/s
+     rx-3.rx_packets: 455.9k/s
+```
+
+As you see the numbers drop by 50%.
+
+Packets hitting the network stack: 350k pps per CPU
+
+
+
+While there is
+an ongoing effort to
+[speed up the mainline kernel to be able to handle 100Gbps](https://lwn.net/Articles/629155/) 
+
+
+
+
+
+
+
+Manual approach
+----------
+
+What I mean, is:
+
+ - Use indirection table manipulation to shield one RX queue from all the usual traffic.
+ - Use flow steering rule to forward only a dedicated flow to that queue.
+ - Disalbe this RX queue from normal kernel processing, and allow a userspace program to take ownership of it.
+
+
+In previos blog post we described how to do first two steps, but
+apparently doing the last one is hard. Over the years there were many
+attempts to create a generic API to receive packets for network card
+quickly, but all seem to have failed. All with one exception:
+`netmap`.
+
+XXX IMAGE
+
+Hacking netmap
+--------
+
+`Netmap` is engineered exactly in a way...
+Due to the way 
+
+We can easily hack it to only claim first RX queue from a NIC and
+totally ignore all the others. Here I wish to thank Pavel Odintsov who
+wrote the original patch and explained how it could work.
+
+With that patch, when running on `ixgbe` netmap will only receive
+traffic from RX queue #0.
+
+A quickly created program to use this technique:
+
+```.bash
+```
+
+
+
+In the end Linux
+is a general purpose environment, not a specilized platform tuned for
+high network performance.
+
+'
+With this setup we can prove how many packets could be handled, for
+example, in a dedicated kernel module. 

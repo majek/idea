@@ -2,8 +2,17 @@
 
 <%block filter="filters.markdown">
 
+-------------
+
+I've published an article on the CloudFlare blog:
+
+ * [https://blog.cloudflare.com/how-to-receive-a-million-packets/](https://blog.cloudflare.com/how-to-receive-a-million-packets/)
 
 
+-------------
+
+
+<% a = '''
 Last week during a casual conversation, I caught my colleague saying:
 "Linux network stack is slow! You can't expect it to do anything more
 than 50 thousand packets per second per core!"
@@ -430,6 +439,7 @@ processing of received packets - it haven't even looked at the content
 of the traffic. Don't expect performance like that for any practical
 application.
 
+''' %>
 </%block>
 
 

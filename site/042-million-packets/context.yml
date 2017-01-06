@@ -1,8 +1,3 @@
-title: "How to receive a million packets"
+title: "How to receive a million packets per second"
 date:  2015-06-16
-disabled: true
-copied_files:
- - htop-onecpu.png
- - htop-twocpu.png
- - port-uneven.png
- - multiqueue.png
+disabled: false

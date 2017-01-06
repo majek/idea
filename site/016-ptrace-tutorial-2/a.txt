@@ -1,0 +1,19 @@
+created -> ready [label="creation"];
+executing -> stopped [label="signal"];
+executing -> suspend [label="syscall"];
+stopped -> ready [label="signal"];
+suspend -> ready [lable="result / syscall"];
+
+executing -> zombie;
+ready -> executing [label="scheduling", dir=both];
+
+
+
+subgraph cluster_x{
+style=filled;
+color=lightgrey;
+rankdir=TB;
+stopped;
+ready;
+executing;
+suspend;

@@ -298,40 +298,51 @@ with the programming paradigms of the user land programs.
 Let me leave you with a couple of vaguely related links:
 
  - Ever wondered why `select` uses a bit mask to pass file descriptor list to kernel? Because 4.2BSD allowed only [20 file descriptors per program](https://utcc.utoronto.ca/~cks/space/blog/unix/BSDExtendedDevelopment).
- - [Channel I/O](https://en.wikipedia.org/wiki/Channel_I/O)
- - [STREAMS](https://en.wikipedia.org/wiki/STREAMS) and [Solaris Guide](http://www.shrubbery.net/solaris9ab/SUNWdev/STREAMS/p4.html)
- - [mpx](http://www.tuhs.org/Archive/PDP-11/Distributions/other/CB_Unix/cbunix_man2_03.pdf) or `mpxcall` - an early IPC / file desciptor multiplexing API
  - [History of Actors](https://eighty-twenty.org/2016/10/18/actors-hopl) programming model
+ - [Channel I/O](https://en.wikipedia.org/wiki/Channel_I/O)
+ - [STREAMS](https://en.wikipedia.org/wiki/STREAMS) and [Solaris Guide](http://www.shrubbery.net/solaris9ab/SUNWdev/STREAMS/p4.html) and ["A Stream Input-Output System"](https://cseweb.ucsd.edu/classes/fa01/cse221/papers/ritchie-stream-io-belllabs84.pdf) by Ritchie.
+ - [mpx](http://www.tuhs.org/cgi-bin/utree.pl?file=2.9BSD/usr/man/cat2/mpx.2) and [mpxio](http://www.tuhs.org/cgi-bin/utree.pl?file=2.9BSD/usr/man/cat5/mpxio.5)  or `mpxcall` - an early IPC / file desciptor multiplexing API. I think these were introduced in 1979 [Version 7 Unix](https://en.wikipedia.org/wiki/Version_7_Unix): "Multiplexed files: 
+A feature that did not survive long was a second way (besides pipes) to do inter-process communication: multiplexed files. A process could create a special type of file with the mpx system call; other processes could then open this file to get a "channel", denoted by a file descriptor, which could be used to communicate with the process that created the multiplexed file. Mpx files were considered experimental, not enabled in the default kernel, and disappeared from later versions, which offered sockets (BSD) or CB UNIX's IPC facilities (System V) instead (although mpx files were still present in 4.1BSD)."
+
+
+*Update:*
+
+Mr. Pike clarified a bit of early history:
+
+> Greg Chessons mpx was in v7 unix by the late 1970s, well before 1983
+> and BSD. Sockets were just one attempt in a crowded environment. The
+> predecessor to the Blit used Greg's mpx. I think the very earliest
+> Blit stuff did too, but by the time the movie was made v8 had
+> happened and Dennis Ritchie gave me streams and select (but no sockets!).
+>
+> Select and sockets were roughly the same time but not necessarily
+> two parts of one thing.
+
+The last statement is telling. `select` came at the same time as
+sockets, but it wasn't implemented purely for networking. It seems that
+all of multiplexing, sockets and IPC came at about the same time,
+without a coherent grand design.
 
 
 A number of people helped with this article: Rob Pike, Kirk McKusick, Ólafur Guðmundsson, Martin J. Levy, David Wragg and Tony Garnock-Jones. Thanks!
- 
-
-<% a ='''
-
-epoll http://www.xmailserver.org/linux-patches/nio-improve.html
-IOCP www.tinyclouds.org/iocp-links.html
-moj komentarz: https://news.ycombinator.com/item?id=9750969
-IOCP http://int64.org/2009/05/13/high-performance-io-on-windows/
-
-kqueue
-http://www.eecs.berkeley.edu/~sangjin/2012/12/21/epoll-vs-kqueue.html
-http://www.tedunangst.com/kqueue.pdf
 
 
-costam
-https://coelhorjc.wordpress.com/2014/12/18/using-non-blocking-and-asynchronous-io-ck10-problem-in-linux-and-windows-with-epool-iocp-aiolibaio-libeventlibevlibuv-boost-asio/
+*Update:*
 
+In
+[a twitter exchange](https://twitter.com/cliffordheath/status/799211720921100288)
+Clifford Heath noted that there was nonblocking I/O on TTY devices
+before 1983.
 
+> There was nonblocking I/O before 1983. The University of Melbourne
+> CS dept paused in 1980/1 to play Hack, and I used it for Pacman.
 
-epoll man page http://man7.org/linux/man-pages/man7/epoll.7.html
+I wonder how it worked. What ioctl's did it use and what were the
+semantics. Perhaps `read()` was nonblocking?
 
-polecam edge-triggered chapter. o tym dlaczego to wazne jutro :)
-https://twitter.com/majek04/status/695497960851795968
+<br>
 
-do tego
-https://twitter.com/majek04/status/698157300524003328
+Continue reading about [Select() being fundamentally broken →](https://idea.popcount.org/2017-01-06-select-is-fundamentally-broken/)
 
-''' %>
 
 </%block>

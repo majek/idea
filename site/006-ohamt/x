@@ -1,0 +1,69 @@
+As you see - 
+
+<dot>
+rankdir: TB
+--
+digraph {
+        node [shape="record"];
+
+        a [label="{map: 1001|{<0>00 &#8594; value \"00000000\"|<1>11 &#8594; pointer}}"];
+        b [label="{map: 0001|{<0>11 &#8594; pointer}}"];
+        c [label="{map: 0001|{<0>11 &#8594; pointer}}"];
+        d [label="{map: 0011|{<1>10 &#8594; value \"11111110\"|<2>11 &#8594; value \"11111111\"}}"];
+        a:1 -> b;
+        b:0 -> c;
+        c:0 -> d;        
+}
+</dot>
+
+
+
+
+<dot>
+digraph {
+        node [shape="record"];
+
+        root [label="{Map|<st>SubTrie}"];
+        leaf [label="{<s>Map|SubTrie}|{Map|SubTrie}|{Map|SubTrie}|{Map|SubTrie}"];
+
+        root:st -> leaf:s;
+}
+</dot>
+
+
+<dot>
+digraph {
+        node [shape="record"];
+
+        root [label="{Map|<st>SubTrie}"];
+        leaf [label="{<s>Map|SubTrie}|{Map|SubTrie}|{Map|SubTrie}|{Map|SubTrie}"];
+
+        root:st -> leaf:s;
+}
+</dot>
+
+
+
+<dot> digraph { node [shape="record"];
+
+        y [label="{<mask>Map:64|<0>0|<1>1|<2>2|<3>3|<4>4|...|63}"];
+}
+</dot>
+
+ads
+<dot>
+digraph {
+        node [shape="record"];
+
+ex [label="{<mask>bitmask}|{<0>0|<1>1|<2>2|<3>3|<4>4|...}"];
+
+                
+        root [label="{<mask>bitmask}|{<0>|<1>|<2>|<3>|<4>|<5>|<6>|<7>}"];
+
+        leaf1 [label="{<mask>bitmask}|{<0>|<1>|<2>|<3>|<4>|<5>|<6>|<7>}"];
+        leaf2 [label="{<mask>bitmask}|{<0>0:leaf|<3>3:value|<32>32:leaf}"];
+        
+        root:0 -> root:1;
+        leaf1:1 -> leaf2;
+}
+</dot>

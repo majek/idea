@@ -340,6 +340,14 @@ before 1983.
 I wonder how it worked. What ioctl's did it use and what were the
 semantics. Perhaps `read()` was nonblocking?
 
+*Upate:*
+
+Paul Ruizendaal followed up this blog post with some more
+investigation into early history. His findings are documented in
+[The History of Unix](http://www.tuhs.org/unixhist.html) mailing list:
+
+ * [http://minnie.tuhs.org/pipermail/tuhs/2017-January/007862.html](http://minnie.tuhs.org/pipermail/tuhs/2017-January/007862.html)
+
 <br>
 
 Continue reading about [Select() being fundamentally broken →](https://idea.popcount.org/2017-01-06-select-is-fundamentally-broken/)

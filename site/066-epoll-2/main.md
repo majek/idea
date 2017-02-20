@@ -355,4 +355,14 @@ McKusick's book, we should focus on "Option 4)" - the `kqueue` and
 
 But that's a subject for another article.
 
+
+Update:
+----
+
+A couple of further technical links:
+ - [`poll()` on OS X is broken](https://daniel.haxx.se/blog/2016/10/11/poll-on-mac-10-12-is-broken/)
+ - [poll vs select](https://daniel.haxx.se/docs/poll-vs-select.html) by Daniel Stenberg
+ - [poll behaviour on EOF](http://www.greenend.org.uk/rjk/tech/poll.html) by Richard Kettlewell
+ - [`EPOLLEXCLUSIVE` corner cases](https://patchwork.kernel.org/patch/8224651/)
+
 </%block>

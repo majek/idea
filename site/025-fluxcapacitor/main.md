@@ -139,7 +139,7 @@ $ time ./fluxcapacitor -- ./sleepsort.sh 5 3 6 3 6 3 1 4 7
 real    0m0.056s
 ```
 
-For the curious: the complexity of sleep search on
+For the curious: the complexity of sleep sort on
 fluxcapacitor is `O(n^2)`.
 
 Advanced usage

@@ -51,7 +51,9 @@ Finally, I spoke about Cloudbleed on [Sysops / Devops meetup](https://www.meetup
 <script async class="speakerdeck-embed" data-id="64bee9e3407f4117a996b2b00de48676" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
 </div>
 
-Recording should [be available here at some point](https://www.youtube.com/playlist?list=PLCk8Tg5OJSDaj2vhwm3v_HgcqJPO2Q3Qx).
+<div>
+<iframe width="640" height="364" src="https://www.youtube.com/embed/3UroufSW94g" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>
+</div>
 
 </%block>
 

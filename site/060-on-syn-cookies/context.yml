@@ -1,3 +1,5 @@
-title: "On SYN cookies"
-date:  2016-07-21
-disabled: true
+title: "SYN packet handling"
+date:  2018-01-15
+disabled: false
+copied_files:
+ - "*.jpeg"
